@@ -77,6 +77,9 @@
 
             <!-- Tab Content: Learning -->
             <div id="tab-content-learning" class="tab-content">
+                <div class="mb-4">
+                    <input type="text" id="learning-search-input" placeholder="Search by deck name..." class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                </div>
                 <div id="learning-history-container" class="space-y-3 mb-6 max-h-[50vh] overflow-y-auto pr-2">
                     <!-- Learning history will be dynamically inserted here -->
                 </div>
@@ -286,6 +289,7 @@
         const downloadHistoryBtn = document.getElementById('download-history-btn');
         const uploadHistoryBtn = document.getElementById('upload-history-btn');
         const historyUploadInput = document.getElementById('history-upload-input');
+        const learningSearchInput = document.getElementById('learning-search-input');
         
         const cardQuestion = document.getElementById('card-question'), cardAnswer = document.getElementById('card-answer'), cardFront = document.getElementById('card-front'), cardBack = document.getElementById('card-back'), noCardsMessage = document.getElementById('no-cards-message'), progressBar = document.getElementById('progress-bar'), progressText = document.getElementById('progress-text'), showAnswerBtn = document.getElementById('show-answer-btn'), showAnswerContainer = document.getElementById('show-answer-container'), ratingContainer = document.getElementById('rating-container'), ratingButtons = document.querySelectorAll('.rating-btn'), flashcardDeck = document.getElementById('flashcard-deck'), completionScreen = document.getElementById('completion-screen'), restartBtn = document.getElementById('restart-btn'), showExplanationBtn = document.getElementById('show-explanation-btn'), explanationContainer = document.getElementById('explanation-container'), cardExplanation = document.getElementById('card-explanation');
 
@@ -791,12 +795,23 @@
         }
 
         // --- Learning History ---
-        function renderLearningHistory() {
+        function renderLearningHistory(searchTerm = '') {
             learningHistoryContainer.innerHTML = '';
-            if (learningHistory.length === 0) {
-                learningHistoryContainer.innerHTML = `<p class="text-center text-slate-500 dark:text-slate-400">No learning history yet. Complete a study session to see your progress!</p>`;
+            
+            const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+            const filteredHistory = learningHistory.filter(record => 
+                record.deckName.toLowerCase().includes(normalizedSearchTerm)
+            );
+
+            if (filteredHistory.length === 0) {
+                if (normalizedSearchTerm) {
+                    learningHistoryContainer.innerHTML = `<p class="text-center text-slate-500 dark:text-slate-400">No results found for "${searchTerm}".</p>`;
+                } else {
+                    learningHistoryContainer.innerHTML = `<p class="text-center text-slate-500 dark:text-slate-400">No learning history yet. Complete a study session to see your progress!</p>`;
+                }
                 return;
             }
+
             const table = document.createElement('table');
             table.className = 'w-full text-sm text-left';
             table.innerHTML = `
@@ -810,7 +825,7 @@
                 </thead>
             `;
             const tbody = document.createElement('tbody');
-            learningHistory.forEach(record => {
+            filteredHistory.forEach(record => {
                 const tr = document.createElement('tr');
                 tr.className = 'border-b dark:border-slate-700';
                 const date = new Date(record.timestamp).toLocaleDateString();
@@ -844,7 +859,7 @@
                 const recordId = e.target.dataset.recordId;
                 learningHistory = learningHistory.filter(r => r.id !== recordId);
                 saveLearningHistory();
-                renderLearningHistory();
+                renderLearningHistory(learningSearchInput.value);
             }
         });
 
@@ -873,7 +888,7 @@
                         learningHistory.unshift(...newRecords);
                         learningHistory.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
                         saveLearningHistory();
-                        renderLearningHistory();
+                        renderLearningHistory(learningSearchInput.value);
                     }
                 } catch (err) {
                     console.error("Failed to parse history file", err);
@@ -920,6 +935,7 @@
             restartBtn.addEventListener('click', restartSession);
             cardsListContainer.addEventListener('click', handleCardListClick);
             generateCardsBtn.addEventListener('click', handleGenerateCards);
+            learningSearchInput.addEventListener('input', () => renderLearningHistory(learningSearchInput.value));
             goToSettingsLink.addEventListener('click', (e) => {
                 e.preventDefault();
                 showScreen('settings');
