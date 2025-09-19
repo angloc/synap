@@ -16,6 +16,12 @@
         }
         .app-screen { display: none; }
         .app-screen.active { display: block; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-btn.active { 
+            border-color: #0ea5e9; /* sky-500 */
+            color: #0ea5e9;
+        }
         .card-content { transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; }
         .card-front.hidden { opacity: 0; transform: translateY(-20px); position: absolute; }
         .card-back { opacity: 0; transform: translateY(20px); position: absolute; }
@@ -34,35 +40,60 @@
             <p class="text-sm">Your browser is not saving data. Decks will not be remembered after you close this tab. This might be because you are in Private/Incognito mode.</p>
         </div>
 
-        <!-- Deck List Screen -->
-        <div id="deck-list-screen" class="app-screen bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 md:p-8">
+        <!-- Main View Screen (Decks and Learning) -->
+        <div id="main-view-screen" class="app-screen bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 md:p-8">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-slate-800 dark:text-white">My Decks</h2>
+                <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Flashcards</h2>
                 <button id="settings-btn" class="text-slate-400 hover:text-sky-500">
                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 </button>
             </div>
-            <div id="decks-container" class="space-y-3 mb-6 max-h-[50vh] overflow-y-auto pr-2">
-                <!-- Decks will be dynamically inserted here -->
+            
+            <!-- Tabs -->
+            <div class="border-b border-slate-200 dark:border-slate-700 mb-6">
+                <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                    <button id="tab-decks" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">My Decks</button>
+                    <button id="tab-learning" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">My Learning</button>
+                </nav>
             </div>
-            <div class="border-t dark:border-slate-700 pt-6 space-y-3">
-                <form id="create-deck-form" class="flex space-x-2">
-                    <input type="text" id="new-deck-name" placeholder="Enter new deck name..." class="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 focus:ring-2 focus:ring-sky-500 focus:outline-none" required>
-                    <button type="submit" class="bg-sky-500 text-white font-bold p-3 rounded-lg hover:bg-sky-600 active:scale-95 transform transition-all duration-200">Create</button>
-                </form>
-                <div class="grid grid-cols-2 gap-3">
-                     <button id="download-decks-btn" class="w-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3 px-4 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Download Selected</button>
-                     <button id="upload-decks-btn" class="w-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3 px-4 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600">Upload Decks</button>
-                     <input type="file" id="deck-upload-input" class="hidden" accept=".zip">
+
+            <!-- Tab Content: Decks -->
+            <div id="tab-content-decks" class="tab-content">
+                <div id="decks-container" class="space-y-3 mb-6 max-h-[50vh] overflow-y-auto pr-2">
+                    <!-- Decks will be dynamically inserted here -->
+                </div>
+                <div class="border-t dark:border-slate-700 pt-6 space-y-3">
+                    <form id="create-deck-form" class="flex space-x-2">
+                        <input type="text" id="new-deck-name" placeholder="Enter new deck name..." class="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 focus:ring-2 focus:ring-sky-500 focus:outline-none" required>
+                        <button type="submit" class="bg-sky-500 text-white font-bold p-3 rounded-lg hover:bg-sky-600 active:scale-95 transform transition-all duration-200">Create</button>
+                    </form>
+                    <div class="grid grid-cols-2 gap-3">
+                         <button id="download-decks-btn" class="w-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3 px-4 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Download Selected</button>
+                         <button id="upload-decks-btn" class="w-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3 px-4 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600">Upload Decks</button>
+                         <input type="file" id="deck-upload-input" class="hidden" accept=".zip">
+                    </div>
                 </div>
             </div>
+
+            <!-- Tab Content: Learning -->
+            <div id="tab-content-learning" class="tab-content">
+                <div id="learning-history-container" class="space-y-3 mb-6 max-h-[50vh] overflow-y-auto pr-2">
+                    <!-- Learning history will be dynamically inserted here -->
+                </div>
+                <div class="border-t dark:border-slate-700 pt-6 grid grid-cols-2 gap-3">
+                     <button id="download-history-btn" class="w-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3 px-4 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600">Download History</button>
+                     <button id="upload-history-btn" class="w-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3 px-4 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600">Upload History</button>
+                     <input type="file" id="history-upload-input" class="hidden" accept=".yaml,.yml">
+                </div>
+            </div>
+
         </div>
 
         <!-- Main Deck Screen -->
         <div id="main-deck-screen" class="app-screen">
              <div id="flashcard-deck" class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 md:p-8 transition-all duration-300 relative">
                 <div class="flex items-center mb-6">
-                    <button id="back-to-decks-btn-study" class="text-slate-400 hover:text-sky-500 mr-3">
+                    <button id="back-to-main-view-btn-study" class="text-slate-400 hover:text-sky-500 mr-3">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
                     </button>
                     <h2 id="deck-title-study" class="text-xl font-bold text-slate-800 dark:text-white truncate"></h2>
@@ -123,7 +154,7 @@
         <div id="manage-cards-screen" class="app-screen bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 md:p-8">
             <div class="flex justify-between items-center mb-6">
                  <div class="flex items-center min-w-0">
-                    <button id="back-to-decks-btn-manage" class="text-slate-400 hover:text-sky-500 mr-3">
+                    <button id="back-to-main-view-btn-manage" class="text-slate-400 hover:text-sky-500 mr-3">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
                     </button>
                     <h2 id="deck-title-manage" class="text-xl font-bold text-slate-800 dark:text-white truncate">Manage Cards</h2>
@@ -132,7 +163,7 @@
                     <button id="add-card-btn" class="text-sky-500 p-1 hover:text-sky-400">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" /></svg>
                     </button>
-                    <button id="back-to-decks-btn-manage-done" class="text-sky-500 dark:text-sky-400 font-semibold hover:underline flex-shrink-0">Done</button>
+                    <button id="back-to-main-view-btn-manage-done" class="text-sky-500 dark:text-sky-400 font-semibold hover:underline flex-shrink-0">Done</button>
                  </div>
             </div>
             
@@ -162,7 +193,7 @@
         <!-- Settings Screen -->
         <div id="settings-screen" class="app-screen bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 md:p-8">
             <div class="flex items-center mb-6">
-                <button id="back-to-decks-btn-settings" class="text-slate-400 hover:text-sky-500 mr-3">
+                <button id="back-to-main-view-btn-settings" class="text-slate-400 hover:text-sky-500 mr-3">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
                 </button>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Settings</h2>
@@ -218,21 +249,30 @@
         // --- Constants & State ---
         const DECKS_STORAGE_KEY = 'flashcard-app-decks-v2';
         const API_KEY_STORAGE_KEY = 'flashcard-app-gemini-api-key';
+        const LEARNING_HISTORY_STORAGE_KEY = 'flashcard-app-learning-history';
         
         let decks = {};
+        let learningHistory = [];
         let activeDeckId = null;
         let currentCardIndex = 0;
+        let sessionScore = 0;
         let isFlipped = false;
         let editingCardIndex = null;
         let geminiApiKey = '';
 
         // --- DOM Elements ---
         const screens = { 
-            deckList: document.getElementById('deck-list-screen'), 
+            mainView: document.getElementById('main-view-screen'), 
             mainDeck: document.getElementById('main-deck-screen'), 
             manageCards: document.getElementById('manage-cards-screen'),
             settings: document.getElementById('settings-screen')
         };
+        // Main view tabs
+        const tabDecks = document.getElementById('tab-decks');
+        const tabLearning = document.getElementById('tab-learning');
+        const tabContentDecks = document.getElementById('tab-content-decks');
+        const tabContentLearning = document.getElementById('tab-content-learning');
+
         const decksContainer = document.getElementById('decks-container');
         const createDeckForm = document.getElementById('create-deck-form');
         const newDeckNameInput = document.getElementById('new-deck-name');
@@ -240,6 +280,12 @@
         const uploadBtn = document.getElementById('upload-decks-btn');
         const uploadInput = document.getElementById('deck-upload-input');
         const settingsBtn = document.getElementById('settings-btn');
+
+        // Learning history elements
+        const learningHistoryContainer = document.getElementById('learning-history-container');
+        const downloadHistoryBtn = document.getElementById('download-history-btn');
+        const uploadHistoryBtn = document.getElementById('upload-history-btn');
+        const historyUploadInput = document.getElementById('history-upload-input');
         
         const cardQuestion = document.getElementById('card-question'), cardAnswer = document.getElementById('card-answer'), cardFront = document.getElementById('card-front'), cardBack = document.getElementById('card-back'), noCardsMessage = document.getElementById('no-cards-message'), progressBar = document.getElementById('progress-bar'), progressText = document.getElementById('progress-text'), showAnswerBtn = document.getElementById('show-answer-btn'), showAnswerContainer = document.getElementById('show-answer-container'), ratingContainer = document.getElementById('rating-container'), ratingButtons = document.querySelectorAll('.rating-btn'), flashcardDeck = document.getElementById('flashcard-deck'), completionScreen = document.getElementById('completion-screen'), restartBtn = document.getElementById('restart-btn'), showExplanationBtn = document.getElementById('show-explanation-btn'), explanationContainer = document.getElementById('explanation-container'), cardExplanation = document.getElementById('card-explanation');
 
@@ -266,18 +312,36 @@
                 console.log(`Successfully activated screen: ${name}`);
                 if (name === 'manageCards') {
                     updateAiFeatureAvailability();
+                } else if (name === 'mainView') {
+                    renderDeckList();
+                    renderLearningHistory();
                 }
             } else {
                 console.error(`Screen "${name}" not found.`);
             }
         };
-        document.getElementById('back-to-decks-btn-study').addEventListener('click', () => showScreen('deckList'));
-        document.getElementById('back-to-decks-btn-manage').addEventListener('click', () => showScreen('deckList'));
-        document.getElementById('back-to-decks-btn-manage-done').addEventListener('click', () => {
-            renderDeckList();
-            showScreen('deckList');
-        });
-        document.getElementById('back-to-decks-btn-settings').addEventListener('click', () => showScreen('deckList'));
+
+        const showTab = (tabName) => {
+            if (tabName === 'decks') {
+                tabDecks.classList.add('active');
+                tabLearning.classList.remove('active');
+                tabContentDecks.classList.add('active');
+                tabContentLearning.classList.remove('active');
+            } else {
+                tabDecks.classList.remove('active');
+                tabLearning.classList.add('active');
+                tabContentDecks.classList.remove('active');
+                tabContentLearning.classList.add('active');
+            }
+        };
+
+        tabDecks.addEventListener('click', () => showTab('decks'));
+        tabLearning.addEventListener('click', () => showTab('learning'));
+
+        document.getElementById('back-to-main-view-btn-study').addEventListener('click', () => showScreen('mainView'));
+        document.getElementById('back-to-main-view-btn-manage').addEventListener('click', () => showScreen('mainView'));
+        document.getElementById('back-to-main-view-btn-manage-done').addEventListener('click', () => showScreen('mainView'));
+        document.getElementById('back-to-main-view-btn-settings').addEventListener('click', () => showScreen('mainView'));
         settingsBtn.addEventListener('click', () => showScreen('settings'));
 
         // --- Data Management ---
@@ -285,11 +349,7 @@
             console.log("Attempting to load decks from localStorage...");
             const storedDecks = localStorage.getItem(DECKS_STORAGE_KEY);
             try {
-                if (storedDecks) {
-                    decks = JSON.parse(storedDecks);
-                } else {
-                    decks = {};
-                }
+                if (storedDecks) decks = JSON.parse(storedDecks); else decks = {};
             } catch (e) {
                 console.error("Failed to parse decks, starting fresh.", e);
                 decks = {};
@@ -300,6 +360,23 @@
              localStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(decks));
              console.log(`Saving decks to localStorage. Total decks: ${Object.keys(decks).length}`);
         };
+
+        function loadLearningHistory() {
+            const storedHistory = localStorage.getItem(LEARNING_HISTORY_STORAGE_KEY);
+            try {
+                if (storedHistory) learningHistory = JSON.parse(storedHistory); else learningHistory = [];
+            } catch (e) {
+                console.error("Failed to parse learning history, starting fresh.", e);
+                learningHistory = [];
+                localStorage.removeItem(LEARNING_HISTORY_STORAGE_KEY);
+            }
+        }
+
+        const saveLearningHistory = () => {
+            localStorage.setItem(LEARNING_HISTORY_STORAGE_KEY, JSON.stringify(learningHistory));
+            console.log(`Saving learning history. Total records: ${learningHistory.length}`);
+        };
+
 
         function loadApiKey() {
             geminiApiKey = localStorage.getItem(API_KEY_STORAGE_KEY) || '';
@@ -463,7 +540,6 @@
             e.target.value = '';
         });
         
-
         // --- GEMINI API ---
         async function callGemini(payload) {
             const apiKey = geminiApiKey || '';
@@ -553,10 +629,40 @@
             showExplanationBtn.textContent = 'Show Explanation';
         }
         
-        function handleRating() { currentCardIndex++; displayCard(currentCardIndex); }
-        function showCompletionScreen() { flashcardDeck.classList.add('hidden'); completionScreen.classList.remove('hidden'); }
+        function handleRating(e) {
+            const rating = e.target.dataset.rating;
+            switch(rating) {
+                case 'hard': sessionScore += 1; break;
+                case 'good': sessionScore += 3; break;
+                case 'easy': sessionScore += 5; break;
+                default: sessionScore += 0;
+            }
+            currentCardIndex++; 
+            displayCard(currentCardIndex); 
+        }
+
+        function showCompletionScreen() { 
+            flashcardDeck.classList.add('hidden'); 
+            completionScreen.classList.remove('hidden');
+            recordSession();
+        }
+
+        function recordSession() {
+            if (!activeDeckId) return;
+            const record = {
+                id: `session-${Date.now()}`,
+                deckId: activeDeckId,
+                deckName: decks[activeDeckId].name,
+                timestamp: new Date().toISOString(),
+                score: sessionScore
+            };
+            learningHistory.unshift(record);
+            saveLearningHistory();
+        }
+
         function restartSession() {
             currentCardIndex = 0;
+            sessionScore = 0;
             completionScreen.classList.add('hidden');
             flashcardDeck.classList.remove('hidden');
             displayCard(currentCardIndex);
@@ -684,6 +790,101 @@
             }
         }
 
+        // --- Learning History ---
+        function renderLearningHistory() {
+            learningHistoryContainer.innerHTML = '';
+            if (learningHistory.length === 0) {
+                learningHistoryContainer.innerHTML = `<p class="text-center text-slate-500 dark:text-slate-400">No learning history yet. Complete a study session to see your progress!</p>`;
+                return;
+            }
+            const table = document.createElement('table');
+            table.className = 'w-full text-sm text-left';
+            table.innerHTML = `
+                <thead class="text-xs text-slate-700 uppercase bg-slate-50 dark:bg-slate-700 dark:text-slate-400">
+                    <tr>
+                        <th scope="col" class="px-4 py-3">Deck</th>
+                        <th scope="col" class="px-4 py-3">Date</th>
+                        <th scope="col" class="px-4 py-3">Score</th>
+                        <th scope="col" class="px-4 py-3"><span class="sr-only">Actions</span></th>
+                    </tr>
+                </thead>
+            `;
+            const tbody = document.createElement('tbody');
+            learningHistory.forEach(record => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b dark:border-slate-700';
+                const date = new Date(record.timestamp).toLocaleDateString();
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">${record.deckName}</td>
+                    <td class="px-4 py-3 text-slate-500 dark:text-slate-400">${date}</td>
+                    <td class="px-4 py-3 font-semibold">${record.score}</td>
+                    <td class="px-4 py-3 text-right">
+                        <button class="font-medium text-sky-600 dark:text-sky-500 hover:underline study-history-btn" data-deck-id="${record.deckId}">Study</button>
+                        <button class="font-medium text-red-600 dark:text-red-500 hover:underline ml-3 delete-history-btn" data-record-id="${record.id}">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            learningHistoryContainer.appendChild(table);
+        }
+
+        learningHistoryContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('study-history-btn')) {
+                const deckId = e.target.dataset.deckId;
+                if (decks[deckId]) {
+                    activeDeckId = deckId;
+                    deckTitleStudy.textContent = decks[activeDeckId].name;
+                    restartSession();
+                    showScreen('mainDeck');
+                } else {
+                    alert('This deck no longer exists.');
+                }
+            } else if (e.target.classList.contains('delete-history-btn')) {
+                const recordId = e.target.dataset.recordId;
+                learningHistory = learningHistory.filter(r => r.id !== recordId);
+                saveLearningHistory();
+                renderLearningHistory();
+            }
+        });
+
+        downloadHistoryBtn.addEventListener('click', () => {
+            if(learningHistory.length === 0) return;
+            const yamlString = jsyaml.dump(learningHistory);
+            const blob = new Blob([yamlString], { type: 'text/yaml' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'learning_history.yaml';
+            link.click();
+            URL.revokeObjectURL(link.href);
+        });
+
+        uploadHistoryBtn.addEventListener('click', () => historyUploadInput.click());
+        historyUploadInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const importedHistory = jsyaml.load(event.target.result);
+                    if (Array.isArray(importedHistory)) {
+                        const existingIds = new Set(learningHistory.map(r => r.id));
+                        const newRecords = importedHistory.filter(r => !existingIds.has(r.id));
+                        learningHistory.unshift(...newRecords);
+                        learningHistory.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                        saveLearningHistory();
+                        renderLearningHistory();
+                    }
+                } catch (err) {
+                    console.error("Failed to parse history file", err);
+                    alert("Could not read the uploaded history file.");
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        });
+
+
         // --- INITIALIZATION ---
         function isLocalStorageAvailable() {
             let storage;
@@ -708,7 +909,9 @@
 
             loadDecks();
             loadApiKey();
+            loadLearningHistory();
             renderDeckList();
+            renderLearningHistory();
 
             console.log("Attaching event listeners...");
             decksContainer.addEventListener('click', handleDeckListActions);
@@ -723,7 +926,8 @@
             });
             
             console.log("Initialization complete. Showing initial screen.");
-            showScreen('deckList');
+            showTab('decks');
+            showScreen('mainView');
         }
 
         init();
