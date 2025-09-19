@@ -36,7 +36,12 @@
 
         <!-- Deck List Screen -->
         <div id="deck-list-screen" class="app-screen bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 md:p-8">
-            <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-6">My Decks</h2>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-slate-800 dark:text-white">My Decks</h2>
+                <button id="settings-btn" class="text-slate-400 hover:text-sky-500">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                </button>
+            </div>
             <div id="decks-container" class="space-y-3 mb-6 max-h-[50vh] overflow-y-auto pr-2">
                 <!-- Decks will be dynamically inserted here -->
             </div>
@@ -123,24 +128,20 @@
                     </button>
                     <h2 id="deck-title-manage" class="text-xl font-bold text-slate-800 dark:text-white truncate">Manage Cards</h2>
                  </div>
-                <button id="back-to-decks-btn-manage-done" class="text-sky-500 dark:text-sky-400 font-semibold hover:underline flex-shrink-0">Done</button>
+                 <div class="flex items-center space-x-2">
+                    <button id="add-card-btn" class="text-sky-500 p-1 hover:text-sky-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" /></svg>
+                    </button>
+                    <button id="back-to-decks-btn-manage-done" class="text-sky-500 dark:text-sky-400 font-semibold hover:underline flex-shrink-0">Done</button>
+                 </div>
+            </div>
+            
+            <div class="mb-6">
+                 <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-3">Cards in Deck</h3>
+                 <div id="cards-list" class="space-y-2 max-h-48 overflow-y-auto pr-2"></div>
             </div>
 
-            <!-- Add/Edit Card Form -->
-            <form id="card-editor-form" class="mb-6">
-                <h3 id="card-editor-title" class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-3">Add New Card</h3>
-                <div class="space-y-3">
-                    <textarea id="edit-question" placeholder="Question / Term" rows="2" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
-                    <textarea id="edit-answer" placeholder="Answer / Definition" rows="3" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
-                    <textarea id="edit-explanation" placeholder="Optional: Fuller Explanation" rows="4" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
-                </div>
-                 <div class="flex items-center space-x-2 mt-3">
-                    <button type="submit" id="save-card-btn" class="w-full bg-sky-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-sky-600 active:scale-95">Add Card</button>
-                    <button type="button" id="cancel-edit-btn" class="w-full hidden bg-slate-200 dark:bg-slate-600 text-slate-800 dark:text-slate-200 font-bold py-2 px-4 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-500">Cancel</button>
-                 </div>
-            </form>
-            
-            <div class="mb-6 border-t dark:border-slate-700 pt-6">
+            <div id="ai-generation-container" class="border-t dark:border-slate-700 pt-6">
                  <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-3 flex items-center"><span class="mr-2">✨</span> AI Card Generation</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <input type="text" id="ai-topic" placeholder="Enter topic..." class="md:col-span-2 w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 focus:ring-2 focus:ring-sky-500 focus:outline-none">
@@ -151,14 +152,53 @@
                 </div>
                 <button id="generate-cards-btn" class="w-full mt-3 bg-gradient-to-r from-purple-500 to-sky-500 text-white font-bold py-2 px-4 rounded-lg hover:opacity-90 active:scale-95 flex items-center justify-center">Generate Cards</button>
                 <p id="ai-error" class="text-red-500 text-sm mt-2 text-center hidden"></p>
+                <div id="ai-needs-key-message" class="hidden text-center mt-3 p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg">
+                    <p class="text-sm text-slate-600 dark:text-slate-300">Please add your Gemini API key in <a href="#" id="go-to-settings-link" class="font-semibold text-sky-500 hover:underline">Settings</a> to use this feature.</p>
+                </div>
             </div>
 
-            <div>
-                 <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-3">Cards in Deck</h3>
-                 <div id="cards-list" class="space-y-2 max-h-40 overflow-y-auto pr-2"></div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settings-screen" class="app-screen bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 md:p-8">
+            <div class="flex items-center mb-6">
+                <button id="back-to-decks-btn-settings" class="text-slate-400 hover:text-sky-500 mr-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white">Settings</h2>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label for="gemini-api-key" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Gemini API Key</label>
+                    <input type="password" id="gemini-api-key" placeholder="Enter your API key" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                    <p class="text-xs text-slate-500 mt-1">To get an API key, <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="text-sky-500 hover:underline">click here</a>. Your key is stored securely in your browser's local storage.</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button id="save-api-key-btn" class="w-full bg-sky-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-sky-600">Save Key</button>
+                    <button id="delete-api-key-btn" class="w-full bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600">Delete Key</button>
+                </div>
+                 <p id="api-key-status" class="text-sm text-center text-green-600 dark:text-green-400"></p>
             </div>
         </div>
+
     </div>
+    
+    <!-- Add/Edit Card Modal -->
+    <div id="card-editor-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50">
+        <form id="card-editor-form" class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 md:p-8 w-full max-w-md">
+            <h3 id="card-editor-title" class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-3">Add New Card</h3>
+            <div class="space-y-3">
+                <textarea id="edit-question" placeholder="Question / Term" rows="2" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+                <textarea id="edit-answer" placeholder="Answer / Definition" rows="3" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+                <textarea id="edit-explanation" placeholder="Optional: Fuller Explanation" rows="4" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+            </div>
+             <div class="flex items-center space-x-2 mt-4">
+                <button type="submit" id="save-card-btn" class="w-full bg-sky-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-sky-600 active:scale-95">Add Card</button>
+                <button type="button" id="cancel-edit-btn" class="w-full bg-slate-200 dark:bg-slate-600 text-slate-800 dark:text-slate-200 font-bold py-2 px-4 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-500">Cancel</button>
+             </div>
+        </form>
+    </div>
+
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -176,39 +216,57 @@
         console.log("Libraries (JSZip, js-yaml) found.");
 
         // --- Constants & State ---
-        const STORAGE_KEY = 'flashcard-app-decks-v2';
+        const DECKS_STORAGE_KEY = 'flashcard-app-decks-v2';
+        const API_KEY_STORAGE_KEY = 'flashcard-app-gemini-api-key';
         
         let decks = {};
         let activeDeckId = null;
         let currentCardIndex = 0;
         let isFlipped = false;
         let editingCardIndex = null;
+        let geminiApiKey = '';
 
         // --- DOM Elements ---
-        const screens = { deckList: document.getElementById('deck-list-screen'), mainDeck: document.getElementById('main-deck-screen'), manageCards: document.getElementById('manage-cards-screen') };
+        const screens = { 
+            deckList: document.getElementById('deck-list-screen'), 
+            mainDeck: document.getElementById('main-deck-screen'), 
+            manageCards: document.getElementById('manage-cards-screen'),
+            settings: document.getElementById('settings-screen')
+        };
         const decksContainer = document.getElementById('decks-container');
         const createDeckForm = document.getElementById('create-deck-form');
         const newDeckNameInput = document.getElementById('new-deck-name');
         const downloadBtn = document.getElementById('download-decks-btn');
         const uploadBtn = document.getElementById('upload-decks-btn');
         const uploadInput = document.getElementById('deck-upload-input');
+        const settingsBtn = document.getElementById('settings-btn');
         
         const cardQuestion = document.getElementById('card-question'), cardAnswer = document.getElementById('card-answer'), cardFront = document.getElementById('card-front'), cardBack = document.getElementById('card-back'), noCardsMessage = document.getElementById('no-cards-message'), progressBar = document.getElementById('progress-bar'), progressText = document.getElementById('progress-text'), showAnswerBtn = document.getElementById('show-answer-btn'), showAnswerContainer = document.getElementById('show-answer-container'), ratingContainer = document.getElementById('rating-container'), ratingButtons = document.querySelectorAll('.rating-btn'), flashcardDeck = document.getElementById('flashcard-deck'), completionScreen = document.getElementById('completion-screen'), restartBtn = document.getElementById('restart-btn'), showExplanationBtn = document.getElementById('show-explanation-btn'), explanationContainer = document.getElementById('explanation-container'), cardExplanation = document.getElementById('card-explanation');
 
+        const addCardBtn = document.getElementById('add-card-btn');
+        const cardEditorModal = document.getElementById('card-editor-modal');
         const cardEditorForm = document.getElementById('card-editor-form'), cardEditorTitle = document.getElementById('card-editor-title'), editQuestion = document.getElementById('edit-question'), editAnswer = document.getElementById('edit-answer'), editExplanation = document.getElementById('edit-explanation'), saveCardBtn = document.getElementById('save-card-btn'), cancelEditBtn = document.getElementById('cancel-edit-btn'), cardsListContainer = document.getElementById('cards-list'), deckTitleStudy = document.getElementById('deck-title-study'), deckTitleManage = document.getElementById('deck-title-manage');
 
+        const aiGenerationContainer = document.getElementById('ai-generation-container');
+        const aiNeedsKeyMessage = document.getElementById('ai-needs-key-message');
+        const goToSettingsLink = document.getElementById('go-to-settings-link');
         const generateCardsBtn = document.getElementById('generate-cards-btn'), aiTopicInput = document.getElementById('ai-topic'), aiCardCountInput = document.getElementById('ai-card-count'), aiError = document.getElementById('ai-error');
         
+        const geminiApiKeyInput = document.getElementById('gemini-api-key');
+        const saveApiKeyBtn = document.getElementById('save-api-key-btn');
+        const deleteApiKeyBtn = document.getElementById('delete-api-key-btn');
+        const apiKeyStatus = document.getElementById('api-key-status');
+
         // --- Navigation ---
         const showScreen = name => {
             console.log(`Switching to screen: ${name}`);
-            // Hide all screens first to prevent conflicts
             Object.values(screens).forEach(s => s.classList.remove('active'));
-            
-            // Show the target screen if it exists
             if (screens[name]) {
                 screens[name].classList.add('active');
                 console.log(`Successfully activated screen: ${name}`);
+                if (name === 'manageCards') {
+                    updateAiFeatureAvailability();
+                }
             } else {
                 console.error(`Screen "${name}" not found.`);
             }
@@ -219,37 +277,64 @@
             renderDeckList();
             showScreen('deckList');
         });
+        document.getElementById('back-to-decks-btn-settings').addEventListener('click', () => showScreen('deckList'));
+        settingsBtn.addEventListener('click', () => showScreen('settings'));
 
         // --- Data Management ---
         function loadDecks() {
             console.log("Attempting to load decks from localStorage...");
-            const storedDecks = localStorage.getItem(STORAGE_KEY);
+            const storedDecks = localStorage.getItem(DECKS_STORAGE_KEY);
             try {
                 if (storedDecks) {
-                    console.log("Found decks in localStorage. Parsing...");
                     decks = JSON.parse(storedDecks);
-                    console.log("Decks parsed successfully:", decks);
                 } else {
-                    console.log("No decks found in localStorage. Starting with an empty collection.");
                     decks = {};
                 }
             } catch (e) {
-                console.error("Failed to parse decks from localStorage, starting with an empty collection.", e);
+                console.error("Failed to parse decks, starting fresh.", e);
                 decks = {};
-                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(DECKS_STORAGE_KEY);
             }
         }
         const saveDecks = () => {
-             localStorage.setItem(STORAGE_KEY, JSON.stringify(decks));
+             localStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(decks));
              console.log(`Saving decks to localStorage. Total decks: ${Object.keys(decks).length}`);
         };
+
+        function loadApiKey() {
+            geminiApiKey = localStorage.getItem(API_KEY_STORAGE_KEY) || '';
+            geminiApiKeyInput.value = geminiApiKey;
+        }
+
+        function saveApiKey() {
+            geminiApiKey = geminiApiKeyInput.value.trim();
+            if (geminiApiKey) {
+                localStorage.setItem(API_KEY_STORAGE_KEY, geminiApiKey);
+                apiKeyStatus.textContent = 'API Key saved!';
+            } else {
+                localStorage.removeItem(API_KEY_STORAGE_KEY);
+                apiKeyStatus.textContent = 'API Key cleared.';
+            }
+            setTimeout(() => apiKeyStatus.textContent = '', 2000);
+        }
+
+        function deleteApiKey() {
+            localStorage.removeItem(API_KEY_STORAGE_KEY);
+            geminiApiKey = '';
+            geminiApiKeyInput.value = '';
+            apiKeyStatus.textContent = 'API Key deleted.';
+            setTimeout(() => apiKeyStatus.textContent = '', 2000);
+        }
+
+        saveApiKeyBtn.addEventListener('click', saveApiKey);
+        deleteApiKeyBtn.addEventListener('click', deleteApiKey);
+
 
         // --- Deck List UI ---
         function renderDeckList() {
             console.log("Rendering deck list...");
             decksContainer.innerHTML = '';
             const deckIds = Object.keys(decks);
-            console.log(`Found ${deckIds.length} decks to render.`);
             if (deckIds.length === 0) {
                  decksContainer.innerHTML = `<p class="text-center text-slate-500 dark:text-slate-400">No decks yet, create or upload!</p>`;
                  return;
@@ -272,13 +357,11 @@
                 `;
                 decksContainer.appendChild(deckEl);
             });
-            console.log("Deck list rendering complete.");
         }
 
         function handleDeckListActions(e) {
             const target = e.target;
             
-            // Handle checkbox
             if (target.classList.contains('deck-checkbox')) {
                 const checked = decksContainer.querySelectorAll('.deck-checkbox:checked').length > 0;
                 downloadBtn.disabled = !checked;
@@ -289,17 +372,15 @@
             if (!deckItem) return;
             const deckId = deckItem.dataset.deckId;
 
-            // Handle study area click
             if (target.closest('.study-deck-area')) {
                 activeDeckId = deckId;
                 deckTitleStudy.textContent = decks[activeDeckId].name;
                 restartSession();
                 showScreen('mainDeck');
-            } // Handle button clicks
+            } 
             else if (target.closest('.edit-deck-btn')) {
                 activeDeckId = deckId;
                 deckTitleManage.textContent = decks[activeDeckId].name;
-                resetCardEditor();
                 renderManageList();
                 showScreen('manageCards');
             } else if (target.closest('.rename-deck-btn')) {
@@ -379,13 +460,16 @@
             }
             saveDecks();
             renderDeckList();
-            e.target.value = ''; // Reset input
+            e.target.value = '';
         });
         
 
         // --- GEMINI API ---
         async function callGemini(payload) {
-            const apiKey = "";
+            const apiKey = geminiApiKey || '';
+            if (!apiKey) {
+                throw new Error("Gemini API key not found.");
+            }
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             try {
                 const response = await fetch(apiUrl, {
@@ -393,14 +477,22 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (!response.ok) throw new Error(`API Error: ${response.status}`);
+
+                if (response.status === 400) {
+                     throw new Error("Invalid API Key. Please check your key in Settings.");
+                } else if (response.status === 429) {
+                    throw new Error("API quota exceeded. Please check your usage in the Google AI Studio.");
+                } else if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
                 const result = await response.json();
                 const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (!text) throw new Error("No content received from API.");
                 return text;
             } catch (error) {
                 console.error("Error calling Gemini API:", error);
-                throw error;
+                throw error; // Re-throw the specific or generic error
             }
         }
         
@@ -474,7 +566,10 @@
             showExplanationBtn.textContent = explanationContainer.classList.contains('visible') ? 'Hide Explanation' : 'Show Explanation';
         });
 
-        // --- Manage Cards UI ---
+        // --- Manage Cards UI & Modal ---
+        function openModal() { cardEditorModal.classList.remove('hidden'); }
+        function closeModal() { cardEditorModal.classList.add('hidden'); resetCardEditor(); }
+
         function renderManageList() {
             cardsListContainer.innerHTML = '';
             const cards = decks[activeDeckId]?.cards || [];
@@ -502,6 +597,7 @@
                 const cardEl = e.target.closest('[data-index]');
                 if (cardEl) {
                     populateCardEditor(parseInt(cardEl.dataset.index, 10));
+                    openModal();
                 }
             }
         }
@@ -514,7 +610,6 @@
             editAnswer.value = card.answer;
             editExplanation.value = card.explanation || '';
             saveCardBtn.textContent = 'Update Card';
-            cancelEditBtn.classList.remove('hidden');
         }
 
         function resetCardEditor() {
@@ -522,7 +617,6 @@
             cardEditorForm.reset();
             cardEditorTitle.textContent = 'Add New Card';
             saveCardBtn.textContent = 'Add Card';
-            cancelEditBtn.classList.add('hidden');
         }
         
         cardEditorForm.addEventListener('submit', (e) => {
@@ -540,12 +634,26 @@
             }
             saveDecks();
             renderManageList();
-            resetCardEditor();
+            closeModal();
         });
-        cancelEditBtn.addEventListener('click', resetCardEditor);
+        
+        addCardBtn.addEventListener('click', () => {
+            resetCardEditor();
+            openModal();
+        });
+        cancelEditBtn.addEventListener('click', closeModal);
+        cardEditorModal.addEventListener('click', (e) => {
+            if (e.target === cardEditorModal) closeModal();
+        });
 
 
         // --- AI Feature Handlers ---
+        function updateAiFeatureAvailability() {
+            const hasApiKey = !!geminiApiKey;
+            aiGenerationContainer.querySelectorAll('input, button').forEach(el => el.disabled = !hasApiKey);
+            aiNeedsKeyMessage.classList.toggle('hidden', hasApiKey);
+        }
+        
         async function handleGenerateCards(e) {
             e.preventDefault();
             const topic = aiTopicInput.value.trim();
@@ -568,7 +676,7 @@
                 renderManageList();
                 aiTopicInput.value = '';
             } catch (error) {
-                aiError.textContent = "Could not generate cards.";
+                aiError.textContent = `Could not generate cards. ${error.message}`;
                 aiError.classList.remove('hidden');
             } finally {
                 generateCardsBtn.disabled = false;
@@ -599,6 +707,7 @@
             }
 
             loadDecks();
+            loadApiKey();
             renderDeckList();
 
             console.log("Attaching event listeners...");
@@ -608,9 +717,12 @@
             restartBtn.addEventListener('click', restartSession);
             cardsListContainer.addEventListener('click', handleCardListClick);
             generateCardsBtn.addEventListener('click', handleGenerateCards);
+            goToSettingsLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                showScreen('settings');
+            });
             
             console.log("Initialization complete. Showing initial screen.");
-            // This is the crucial fix: Ensure a screen is always shown after setup.
             showScreen('deckList');
         }
 
@@ -619,5 +731,4 @@
     </script>
 </body>
 </html>
-
 
