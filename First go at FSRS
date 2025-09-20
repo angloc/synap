@@ -840,7 +840,7 @@
                     return { ...item, color: 'red', p_recall: 0, next_review: now };
                 }
 
-                const p_recall = f.get_retrievability(fsrsCard, now);
+                const p_recall = f.get_retrievability(fsrsCard, now) || 0;
 
                 let color;
                 if (p_recall < 0.80) { // Overdue
@@ -852,7 +852,8 @@
                 }
                 
                 const scheduling_cards = f.repeat(fsrsCard, now);
-                const nextReviewDate = scheduling_cards[Rating.Good].due;
+                const nextReviewDate = scheduling_cards && scheduling_cards[Rating.Good] ? scheduling_cards[Rating.Good].card.due : now;
+
 
                 return { ...item, color, p_recall, next_review: nextReviewDate };
             });
@@ -880,7 +881,7 @@
             rankedItems.forEach(item => {
                 const tr = document.createElement('tr'); 
                 tr.className = 'border-b dark:border-slate-700';
-                const nextDate = item.next_review.toLocaleDateString();
+                const nextDate = item.next_review ? item.next_review.toLocaleDateString() : 'N/A';
                 tr.innerHTML = `
                     <td class="px-4 py-3">
                         <p class="font-medium truncate cursor-pointer hover:underline schedule-card-link schedule-color-${item.color}" data-deck-id="${item.deckId}" data-card-id="${item.id}" title="Study from this card">${item.cardQuestion}</p>
