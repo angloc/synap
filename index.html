@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Flashcard App</title>
+    <title>Synap</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
@@ -52,7 +52,7 @@
         <!-- Main View Screen (Decks and Learning) -->
         <div id="main-view-screen" class="app-screen bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 md:p-8">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Flashcards</h2>
+                <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Synap</h2>
                 <button id="settings-btn" class="text-slate-400 hover:text-sky-500">
                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 </button>
@@ -87,7 +87,7 @@
             <!-- Tab Content: Learning -->
             <div id="tab-content-learning" class="tab-content">
                 <div class="mb-4">
-                    <input type="text" id="learning-search-input" placeholder="Search by deck name..." class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                    <input type="text" id="learning-search-input" placeholder="Search deck or card..." class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 focus:ring-2 focus:ring-sky-500 focus:outline-none">
                 </div>
                 <div id="learning-history-container" class="space-y-3 mb-6 max-h-[50vh] overflow-y-auto pr-2">
                     <!-- Learning history will be dynamically inserted here -->
@@ -226,7 +226,6 @@
                  <p id="api-key-status" class="text-sm text-center text-green-600 dark:text-green-400"></p>
             </div>
         </div>
-
     </div>
     
     <!-- Add/Edit Card Modal -->
@@ -245,116 +244,105 @@
         </form>
     </div>
 
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 md:p-8 w-full max-w-sm text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/50">
+                <svg class="h-6 w-6 text-red-600 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium leading-6 text-slate-900 dark:text-white mt-5">Are you sure?</h3>
+            <div class="mt-2">
+                <p id="confirmation-message" class="text-sm text-slate-500 dark:text-slate-400"></p>
+            </div>
+            <div class="mt-5 sm:mt-6 grid grid-cols-2 gap-3">
+                <button type="button" id="confirm-delete-btn" class="w-full justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:ring-offset-slate-800">Delete</button>
+                <button type="button" id="cancel-delete-btn" class="w-full justify-center rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2 text-base font-medium text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 dark:ring-offset-slate-800">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Warning Modal -->
+    <div id="warning-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 md:p-8 w-full max-w-sm text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-100 dark:bg-amber-900/50">
+                <svg class="h-6 w-6 text-amber-600 dark:text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium leading-6 text-slate-900 dark:text-white mt-5">Import Warning</h3>
+            <div class="mt-2 text-left">
+                <p id="warning-message" class="text-sm text-slate-500 dark:text-slate-400"></p>
+            </div>
+            <div class="mt-5 sm:mt-6">
+                <button type="button" id="close-warning-btn" class="w-full justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 dark:ring-offset-slate-800">OK</button>
+            </div>
+        </div>
+    </div>
+
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        console.log("DOM content loaded. App starting...");
-        // --- Libraries ---
+        // --- Libraries & Constants ---
         const { JSZip, jsyaml } = window;
-        if (!JSZip || !jsyaml) {
-            console.error('Error: Required libraries (JSZip, js-yaml) not found.');
-            document.body.innerHTML = `<div class="w-full max-w-md mx-auto my-8 p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md text-center">
-                <h1 class="text-2xl font-bold text-red-600 dark:text-red-400">Initialization Error</h1>
-                <p class="mt-2 text-slate-700 dark:text-slate-200">Could not load required libraries (JSZip, js-yaml). Please check your internet connection and refresh the page.</p>
-            </div>`;
-            return;
+        if (!JSZip || !jsyaml) { 
+            document.body.innerHTML = `<div class="w-full max-w-md mx-auto my-8 p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md text-center"><h1 class="text-2xl font-bold text-red-600 dark:text-red-400">Initialization Error</h1><p class="mt-2 text-slate-700 dark:text-slate-200">Could not load required libraries. Please check your internet connection and refresh.</p></div>`;
+            return; 
         }
-        console.log("Libraries (JSZip, js-yaml) found.");
-
-        // --- Constants & State ---
-        const DECKS_STORAGE_KEY = 'flashcard-app-decks-v2';
-        const API_KEY_STORAGE_KEY = 'flashcard-app-gemini-api-key';
-        const LEARNING_HISTORY_STORAGE_KEY = 'flashcard-app-learning-history';
+        const DECKS_STORAGE_KEY = 'flashcard-app-decks-v4', API_KEY_STORAGE_KEY = 'flashcard-app-gemini-api-key', LEARNING_HISTORY_STORAGE_KEY = 'flashcard-app-learning-history-v2';
         
-        let decks = {};
-        let learningHistory = [];
-        let activeDeckId = null;
-        let currentCardIndex = 0;
-        let sessionScore = 0;
-        let isFlipped = false;
-        let editingCardIndex = null;
-        let geminiApiKey = '';
+        let decks = {}, learningHistory = [], activeDeckId = null, currentCardIndex = 0, isFlipped = false, editingCardIndex = null, geminiApiKey = '', confirmCallback = null;
 
         // --- DOM Elements ---
-        const screens = { 
-            mainView: document.getElementById('main-view-screen'), 
-            mainDeck: document.getElementById('main-deck-screen'), 
-            manageCards: document.getElementById('manage-cards-screen'),
-            settings: document.getElementById('settings-screen')
-        };
-        // Main view tabs
-        const tabDecks = document.getElementById('tab-decks');
-        const tabLearning = document.getElementById('tab-learning');
-        const tabContentDecks = document.getElementById('tab-content-decks');
-        const tabContentLearning = document.getElementById('tab-content-learning');
-
-        const decksContainer = document.getElementById('decks-container');
-        const createDeckForm = document.getElementById('create-deck-form');
-        const newDeckNameInput = document.getElementById('new-deck-name');
-        const downloadBtn = document.getElementById('download-decks-btn');
-        const uploadBtn = document.getElementById('upload-decks-btn');
-        const uploadInput = document.getElementById('deck-upload-input');
-        const settingsBtn = document.getElementById('settings-btn');
-
-        // Learning history elements
-        const learningHistoryContainer = document.getElementById('learning-history-container');
-        const downloadHistoryBtn = document.getElementById('download-history-btn');
-        const uploadHistoryBtn = document.getElementById('upload-history-btn');
-        const historyUploadInput = document.getElementById('history-upload-input');
-        const learningSearchInput = document.getElementById('learning-search-input');
-        
+        const screens = { mainView: document.getElementById('main-view-screen'), mainDeck: document.getElementById('main-deck-screen'), manageCards: document.getElementById('manage-cards-screen'), settings: document.getElementById('settings-screen') };
+        const tabDecks = document.getElementById('tab-decks'), tabLearning = document.getElementById('tab-learning'), tabContentDecks = document.getElementById('tab-content-decks'), tabContentLearning = document.getElementById('tab-content-learning');
+        const decksContainer = document.getElementById('decks-container'), createDeckForm = document.getElementById('create-deck-form'), newDeckNameInput = document.getElementById('new-deck-name'), downloadBtn = document.getElementById('download-decks-btn'), uploadBtn = document.getElementById('upload-decks-btn'), uploadInput = document.getElementById('deck-upload-input'), settingsBtn = document.getElementById('settings-btn');
+        const learningHistoryContainer = document.getElementById('learning-history-container'), downloadHistoryBtn = document.getElementById('download-history-btn'), uploadHistoryBtn = document.getElementById('upload-history-btn'), historyUploadInput = document.getElementById('history-upload-input'), learningSearchInput = document.getElementById('learning-search-input');
         const cardQuestion = document.getElementById('card-question'), cardAnswer = document.getElementById('card-answer'), cardFront = document.getElementById('card-front'), cardBack = document.getElementById('card-back'), noCardsMessage = document.getElementById('no-cards-message'), progressBar = document.getElementById('progress-bar'), progressText = document.getElementById('progress-text'), showAnswerBtn = document.getElementById('show-answer-btn'), showAnswerContainer = document.getElementById('show-answer-container'), ratingContainer = document.getElementById('rating-container'), ratingButtons = document.querySelectorAll('.rating-btn'), flashcardDeck = document.getElementById('flashcard-deck'), completionScreen = document.getElementById('completion-screen'), restartBtn = document.getElementById('restart-btn'), showExplanationBtn = document.getElementById('show-explanation-btn'), explanationContainer = document.getElementById('explanation-container'), cardExplanation = document.getElementById('card-explanation');
+        const addCardBtn = document.getElementById('add-card-btn'), cardEditorModal = document.getElementById('card-editor-modal'), cardEditorForm = document.getElementById('card-editor-form'), cardEditorTitle = document.getElementById('card-editor-title'), editQuestion = document.getElementById('edit-question'), editAnswer = document.getElementById('edit-answer'), editExplanation = document.getElementById('edit-explanation'), saveCardBtn = document.getElementById('save-card-btn'), cancelEditBtn = document.getElementById('cancel-edit-btn'), cardsListContainer = document.getElementById('cards-list'), deckTitleStudy = document.getElementById('deck-title-study'), deckTitleManage = document.getElementById('deck-title-manage');
+        const aiGenerationContainer = document.getElementById('ai-generation-container'), aiNeedsKeyMessage = document.getElementById('ai-needs-key-message'), goToSettingsLink = document.getElementById('go-to-settings-link'), generateCardsBtn = document.getElementById('generate-cards-btn'), aiTopicInput = document.getElementById('ai-topic'), aiCardCountInput = document.getElementById('ai-card-count'), aiError = document.getElementById('ai-error');
+        const geminiApiKeyInput = document.getElementById('gemini-api-key'), saveApiKeyBtn = document.getElementById('save-api-key-btn'), deleteApiKeyBtn = document.getElementById('delete-api-key-btn'), apiKeyStatus = document.getElementById('api-key-status'), backToMainFromCompleteBtn = document.getElementById('back-to-main-from-complete-btn');
+        const confirmationModal = document.getElementById('confirmation-modal'), confirmationMessage = document.getElementById('confirmation-message'), confirmDeleteBtn = document.getElementById('confirm-delete-btn'), cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+        const warningModal = document.getElementById('warning-modal'), warningMessage = document.getElementById('warning-message'), closeWarningBtn = document.getElementById('close-warning-btn');
 
-        const addCardBtn = document.getElementById('add-card-btn');
-        const cardEditorModal = document.getElementById('card-editor-modal');
-        const cardEditorForm = document.getElementById('card-editor-form'), cardEditorTitle = document.getElementById('card-editor-title'), editQuestion = document.getElementById('edit-question'), editAnswer = document.getElementById('edit-answer'), editExplanation = document.getElementById('edit-explanation'), saveCardBtn = document.getElementById('save-card-btn'), cancelEditBtn = document.getElementById('cancel-edit-btn'), cardsListContainer = document.getElementById('cards-list'), deckTitleStudy = document.getElementById('deck-title-study'), deckTitleManage = document.getElementById('deck-title-manage');
-
-        const aiGenerationContainer = document.getElementById('ai-generation-container');
-        const aiNeedsKeyMessage = document.getElementById('ai-needs-key-message');
-        const goToSettingsLink = document.getElementById('go-to-settings-link');
-        const generateCardsBtn = document.getElementById('generate-cards-btn'), aiTopicInput = document.getElementById('ai-topic'), aiCardCountInput = document.getElementById('ai-card-count'), aiError = document.getElementById('ai-error');
-        
-        const geminiApiKeyInput = document.getElementById('gemini-api-key');
-        const saveApiKeyBtn = document.getElementById('save-api-key-btn');
-        const deleteApiKeyBtn = document.getElementById('delete-api-key-btn');
-        const apiKeyStatus = document.getElementById('api-key-status');
-        const backToMainFromCompleteBtn = document.getElementById('back-to-main-from-complete-btn');
-
-        // --- Navigation ---
-        const showScreen = name => {
-            console.log(`Switching to screen: ${name}`);
-            Object.values(screens).forEach(s => s.classList.remove('active'));
-            if (screens[name]) {
-                screens[name].classList.add('active');
-                console.log(`Successfully activated screen: ${name}`);
-                if (name === 'manageCards') {
-                    updateAiFeatureAvailability();
-                } else if (name === 'mainView') {
-                    renderDeckList();
-                    renderLearningHistory();
-                }
-            } else {
-                console.error(`Screen "${name}" not found.`);
-            }
+        // --- Navigation & Modals ---
+        const showScreen = name => { 
+            Object.values(screens).forEach(s => s.classList.remove('active')); 
+            if (screens[name]) { 
+                screens[name].classList.add('active'); 
+                if (name === 'manageCards') updateAiFeatureAvailability(); 
+                else if (name === 'mainView') { renderDeckList(); renderLearningHistory(); } 
+            } 
         };
-
-        const showTab = (tabName) => {
-            if (tabName === 'decks') {
-                tabDecks.classList.add('active');
-                tabLearning.classList.remove('active');
-                tabContentDecks.classList.add('active');
-                tabContentLearning.classList.remove('active');
-            } else {
-                tabDecks.classList.remove('active');
-                tabLearning.classList.add('active');
-                tabContentDecks.classList.remove('active');
-                tabContentLearning.classList.add('active');
-            }
+        const showTab = (tabName) => { 
+            tabDecks.classList.toggle('active', tabName === 'decks'); 
+            tabLearning.classList.toggle('active', tabName !== 'decks'); 
+            tabContentDecks.classList.toggle('active', tabName === 'decks'); 
+            tabContentLearning.classList.toggle('active', tabName !== 'decks'); 
         };
+        const showConfirmationModal = (message, onConfirm) => { 
+            confirmationMessage.textContent = message; 
+            confirmCallback = onConfirm; 
+            confirmationModal.classList.remove('hidden'); 
+        };
+        const hideConfirmationModal = () => { 
+            confirmationModal.classList.add('hidden'); 
+            confirmCallback = null; 
+        };
+        const showWarningModal = (message) => { 
+            warningMessage.innerHTML = message; 
+            warningModal.classList.remove('hidden'); 
+        };
+        confirmDeleteBtn.addEventListener('click', () => { 
+            if (typeof confirmCallback === 'function') confirmCallback(); 
+            hideConfirmationModal(); 
+        });
+        cancelDeleteBtn.addEventListener('click', hideConfirmationModal);
+        closeWarningBtn.addEventListener('click', () => warningModal.classList.add('hidden'));
 
-        tabDecks.addEventListener('click', () => showTab('decks'));
+        tabDecks.addEventListener('click', () => showTab('decks')); 
         tabLearning.addEventListener('click', () => showTab('learning'));
-
         document.getElementById('back-to-main-view-btn-study').addEventListener('click', () => showScreen('mainView'));
         document.getElementById('back-to-main-view-btn-manage').addEventListener('click', () => showScreen('mainView'));
         document.getElementById('back-to-main-view-btn-manage-done').addEventListener('click', () => showScreen('mainView'));
@@ -362,39 +350,53 @@
         settingsBtn.addEventListener('click', () => showScreen('settings'));
 
         // --- Data Management ---
+        const generateUUID = () => crypto.randomUUID();
+        
         function loadDecks() {
-            console.log("Attempting to load decks from localStorage...");
             const storedDecks = localStorage.getItem(DECKS_STORAGE_KEY);
             try {
-                if (storedDecks) decks = JSON.parse(storedDecks); else decks = {};
-            } catch (e) {
-                console.error("Failed to parse decks, starting fresh.", e);
-                decks = {};
-                localStorage.removeItem(DECKS_STORAGE_KEY);
+                if (storedDecks) {
+                    decks = JSON.parse(storedDecks);
+                    let wasModified = false;
+                    Object.values(decks).forEach(deck => {
+                        if (!deck.id || !deck.id.includes('-')) { 
+                            deck.id = generateUUID(); 
+                            wasModified = true; 
+                        }
+                        deck.cards.forEach(card => { 
+                            if (!card.id || !card.id.includes('-')) { 
+                                card.id = generateUUID(); 
+                                wasModified = true; 
+                            } 
+                        });
+                    });
+                    if (wasModified) saveDecks();
+                } else {
+                    decks = {};
+                }
+            } catch (e) { 
+                console.error("Failed to parse decks.", e); 
+                decks = {}; 
+                localStorage.removeItem(DECKS_STORAGE_KEY); 
             }
         }
-        const saveDecks = () => {
-             localStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(decks));
-             console.log(`Saving decks to localStorage. Total decks: ${Object.keys(decks).length}`);
-        };
-
+        
+        const saveDecks = () => localStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(decks));
+        
         function loadLearningHistory() {
             const storedHistory = localStorage.getItem(LEARNING_HISTORY_STORAGE_KEY);
-            try {
-                if (storedHistory) learningHistory = JSON.parse(storedHistory); else learningHistory = [];
+            try { 
+                if (storedHistory) learningHistory = JSON.parse(storedHistory); 
+                else learningHistory = []; 
             } catch (e) {
-                console.error("Failed to parse learning history, starting fresh.", e);
-                learningHistory = [];
+                console.error("Failed to parse learning history.", e); 
+                learningHistory = []; 
                 localStorage.removeItem(LEARNING_HISTORY_STORAGE_KEY);
             }
         }
 
-        const saveLearningHistory = () => {
-            localStorage.setItem(LEARNING_HISTORY_STORAGE_KEY, JSON.stringify(learningHistory));
-            console.log(`Saving learning history. Total records: ${learningHistory.length}`);
-        };
-
-
+        const saveLearningHistory = () => localStorage.setItem(LEARNING_HISTORY_STORAGE_KEY, JSON.stringify(learningHistory));
+        
         function loadApiKey() {
             geminiApiKey = localStorage.getItem(API_KEY_STORAGE_KEY) || '';
             geminiApiKeyInput.value = geminiApiKey;
@@ -404,301 +406,262 @@
             geminiApiKey = geminiApiKeyInput.value.trim();
             if (geminiApiKey) {
                 localStorage.setItem(API_KEY_STORAGE_KEY, geminiApiKey);
-                apiKeyStatus.textContent = 'API Key saved!';
             } else {
                 localStorage.removeItem(API_KEY_STORAGE_KEY);
-                apiKeyStatus.textContent = 'API Key cleared.';
             }
+            apiKeyStatus.textContent = geminiApiKey ? 'API Key saved!' : 'API Key cleared.';
             setTimeout(() => apiKeyStatus.textContent = '', 2000);
         }
 
         function deleteApiKey() {
-            localStorage.removeItem(API_KEY_STORAGE_KEY);
-            geminiApiKey = '';
+            localStorage.removeItem(API_KEY_STORAGE_KEY); 
+            geminiApiKey = ''; 
             geminiApiKeyInput.value = '';
-            apiKeyStatus.textContent = 'API Key deleted.';
+            apiKeyStatus.textContent = 'API Key deleted.'; 
             setTimeout(() => apiKeyStatus.textContent = '', 2000);
         }
 
-        saveApiKeyBtn.addEventListener('click', saveApiKey);
+        saveApiKeyBtn.addEventListener('click', saveApiKey); 
         deleteApiKeyBtn.addEventListener('click', deleteApiKey);
-
 
         // --- Deck List UI ---
         function renderDeckList() {
-            console.log("Rendering deck list...");
-            decksContainer.innerHTML = '';
+            decksContainer.innerHTML = ''; 
             const deckIds = Object.keys(decks);
             if (deckIds.length === 0) {
-                 decksContainer.innerHTML = `<p class="text-center text-slate-500 dark:text-slate-400">No decks yet, create or upload!</p>`;
+                 decksContainer.innerHTML = `<p class="text-center text-slate-500 dark:text-slate-400">No decks yet, create or upload!</p>`; 
                  return;
             }
             deckIds.forEach(id => {
-                const deck = decks[id];
+                const deck = decks[id]; 
                 const deckEl = document.createElement('div');
                 deckEl.className = 'bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg flex items-center space-x-3 transition-all duration-300';
                 deckEl.setAttribute('data-deck-id', id);
-                deckEl.innerHTML = `
-                    <input type="checkbox" data-deck-id="${deck.id}" class="deck-checkbox h-5 w-5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
-                    <div class="flex-grow min-w-0 cursor-pointer study-deck-area" data-deck-id="${deck.id}">
-                        <p class="font-bold text-slate-800 dark:text-slate-100 truncate pointer-events-none">${deck.name}</p>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 pointer-events-none">${deck.cards.length} cards</p>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button data-deck-id="${deck.id}" class="rename-deck-btn text-slate-500 hover:text-sky-500 p-1"><svg class="h-5 w-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg></button>
-                        <button data-deck-id="${deck.id}" class="edit-deck-btn text-slate-500 hover:text-sky-500 p-1"><svg class="h-5 w-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
-                        <button data-deck-id="${deck.id}" class="delete-deck-btn text-slate-500 hover:text-red-500 p-1"><svg class="h-5 w-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
-                    </div>
-                `;
+                deckEl.innerHTML = `<input type="checkbox" data-deck-id="${deck.id}" class="deck-checkbox h-5 w-5 rounded border-slate-300 text-sky-600 focus:ring-sky-500"><div class="flex-grow min-w-0 cursor-pointer study-deck-area" data-deck-id="${deck.id}"><p class="font-bold text-slate-800 dark:text-slate-100 truncate pointer-events-none">${deck.name}</p><p class="text-sm text-slate-500 dark:text-slate-400 pointer-events-none">${deck.cards.length} cards</p></div><div class="flex items-center space-x-2"><button data-deck-id="${deck.id}" class="rename-deck-btn text-slate-500 hover:text-sky-500 p-1"><svg class="h-5 w-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg></button><button data-deck-id="${deck.id}" class="edit-deck-btn text-slate-500 hover:text-sky-500 p-1"><svg class="h-5 w-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button><button data-deck-id="${deck.id}" class="delete-deck-btn text-slate-500 hover:text-red-500 p-1"><svg class="h-5 w-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button></div>`;
                 decksContainer.appendChild(deckEl);
             });
         }
 
         function handleDeckListActions(e) {
             const target = e.target;
-            
             if (target.classList.contains('deck-checkbox')) {
-                const checked = decksContainer.querySelectorAll('.deck-checkbox:checked').length > 0;
-                downloadBtn.disabled = !checked;
+                downloadBtn.disabled = !decksContainer.querySelectorAll('.deck-checkbox:checked').length; 
                 return;
             }
-
-            const deckItem = target.closest('[data-deck-id]');
+            const deckItem = target.closest('[data-deck-id]'); 
             if (!deckItem) return;
             const deckId = deckItem.dataset.deckId;
-
             if (target.closest('.study-deck-area')) {
-                activeDeckId = deckId;
+                activeDeckId = deckId; 
                 deckTitleStudy.textContent = decks[activeDeckId].name;
-                restartSession();
+                restartSession(); 
                 showScreen('mainDeck');
-            } 
-            else if (target.closest('.edit-deck-btn')) {
-                activeDeckId = deckId;
+            } else if (target.closest('.edit-deck-btn')) {
+                activeDeckId = deckId; 
                 deckTitleManage.textContent = decks[activeDeckId].name;
-                renderManageList();
+                renderManageList(); 
                 showScreen('manageCards');
             } else if (target.closest('.rename-deck-btn')) {
-                const oldName = decks[deckId].name;
+                const oldName = decks[deckId].name; 
                 const newName = prompt('Enter new deck name:', oldName);
                 if (newName && newName.trim() && newName.trim() !== oldName) {
-                    decks[deckId].name = newName.trim();
-                    saveDecks();
+                    decks[deckId].name = newName.trim(); 
+                    saveDecks(); 
                     renderDeckList();
                 }
             } else if (target.closest('.delete-deck-btn')) {
-                delete decks[deckId];
-                saveDecks();
-                renderDeckList();
+                const message = `This will permanently delete the "${decks[deckId].name}" deck and all its learning history. This action cannot be undone.`;
+                showConfirmationModal(message, () => {
+                    learningHistory = learningHistory.filter(record => record.deckId !== deckId);
+                    saveLearningHistory();
+                    delete decks[deckId];
+                    saveDecks();
+                    renderDeckList();
+                });
             }
         }
 
-        createDeckForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const name = newDeckNameInput.value.trim();
-            if (name) {
-                const id = `deck-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-                decks[id] = { id, name, cards: [] };
-                saveDecks();
-                renderDeckList();
-                newDeckNameInput.value = '';
-            }
+        createDeckForm.addEventListener('submit', (e) => { 
+            e.preventDefault(); 
+            const name = newDeckNameInput.value.trim(); 
+            if (name) { 
+                const id = generateUUID(); 
+                decks[id] = { id, name, cards: [] }; 
+                saveDecks(); 
+                renderDeckList(); 
+                newDeckNameInput.value = ''; 
+            } 
         });
 
         // --- Import/Export ---
         downloadBtn.addEventListener('click', async () => {
             const selectedIds = [...decksContainer.querySelectorAll('.deck-checkbox:checked')].map(cb => cb.dataset.deckId);
             if (selectedIds.length === 0) return;
-
             const zip = new JSZip();
             selectedIds.forEach(id => {
-                const deck = decks[id];
-                const yamlString = jsyaml.dump(deck);
-                const filename = `${deck.name.replace(/[^a-z0-9]/gi, '_')}.yaml`;
-                zip.file(filename, yamlString);
+                const deck = decks[id]; const yamlString = jsyaml.dump(deck);
+                zip.file(`${deck.name.replace(/[^a-z0-9]/gi, '_')}.yaml`, yamlString);
             });
-
             const content = await zip.generateAsync({ type: 'blob' });
             const link = document.createElement('a');
-            link.href = URL.createObjectURL(content);
-            link.download = 'flashcard_decks.zip';
-            link.click();
-            URL.revokeObjectURL(link.href);
+            link.href = URL.createObjectURL(content); link.download = 'flashcard_decks.zip';
+            link.click(); URL.revokeObjectURL(link.href);
         });
 
         uploadBtn.addEventListener('click', () => uploadInput.click());
+
         uploadInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+            const file = e.target.files[0]; if (!file) return;
+
+            const existingDeckIds = new Set(Object.keys(decks));
+            const existingCardIds = new Set(Object.values(decks).flatMap(d => d.cards.map(c => c.id)));
+            const ignoredDecks = [];
+            const addedDecks = {};
 
             const zip = await JSZip.loadAsync(file);
-            const existingNames = Object.values(decks).map(d => d.name);
-
             for (const filename in zip.files) {
                 if (filename.endsWith('.yaml') || filename.endsWith('.yml')) {
                     const fileContent = await zip.files[filename].async('string');
                     try {
                         let importedDeck = jsyaml.load(fileContent);
-                        if (importedDeck && importedDeck.name && Array.isArray(importedDeck.cards)) {
-                             let newName = importedDeck.name;
-                             let counter = 1;
-                             while(existingNames.includes(newName)) {
-                                 newName = `${importedDeck.name} (${counter++})`;
-                             }
-                             importedDeck.name = newName;
-                             importedDeck.id = `deck-${Date.now()}-${Math.random()}`;
-                             decks[importedDeck.id] = importedDeck;
-                             existingNames.push(newName);
+                        if (importedDeck && importedDeck.id && importedDeck.name && Array.isArray(importedDeck.cards)) {
+                            let hasConflict = false;
+                            if (existingDeckIds.has(importedDeck.id)) {
+                                hasConflict = true;
+                            } else {
+                                for (const card of importedDeck.cards) {
+                                    if (existingCardIds.has(card.id)) {
+                                        hasConflict = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (hasConflict) {
+                                ignoredDecks.push(importedDeck.name);
+                            } else {
+                                addedDecks[importedDeck.id] = importedDeck;
+                                existingDeckIds.add(importedDeck.id);
+                                importedDeck.cards.forEach(card => existingCardIds.add(card.id));
+                            }
                         }
                     } catch (err) { console.error(`Failed to parse ${filename}:`, err); }
                 }
             }
-            saveDecks();
-            renderDeckList();
+
+            if (Object.keys(addedDecks).length > 0) {
+                Object.assign(decks, addedDecks);
+                saveDecks();
+                renderDeckList();
+            }
+
+            if (ignoredDecks.length > 0) {
+                const message = `The following decks were not imported due to ID conflicts: <ul>${ignoredDecks.map(name => `<li class='mt-1 ml-4 list-disc'>${name}</li>`).join('')}</ul>`;
+                showWarningModal(message);
+            }
+
             e.target.value = '';
         });
         
         // --- GEMINI API ---
         async function callGemini(payload) {
-            const apiKey = geminiApiKey || '';
-            if (!apiKey) {
-                throw new Error("Gemini API key not found.");
-            }
+            const apiKey = geminiApiKey || ''; if (!apiKey) throw new Error("Gemini API key not found.");
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.status === 400) {
-                     throw new Error("Invalid API Key. Please check your key in Settings.");
-                } else if (response.status === 429) {
-                    throw new Error("API quota exceeded. Please check your usage in the Google AI Studio.");
-                } else if (!response.ok) {
-                    throw new Error(`API Error: ${response.status}`);
-                }
-
-                const result = await response.json();
-                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (response.status === 400) throw new Error("Invalid API Key. Please check your key in Settings.");
+                else if (response.status === 429) throw new Error("API quota exceeded. Please check your usage in the Google AI Studio.");
+                else if (!response.ok) throw new Error(`API Error: ${response.status}`);
+                const result = await response.json(); const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (!text) throw new Error("No content received from API.");
                 return text;
-            } catch (error) {
-                console.error("Error calling Gemini API:", error);
-                throw error; // Re-throw the specific or generic error
-            }
+            } catch (error) { console.error("Error calling Gemini API:", error); throw error; }
         }
         
         // --- Main Deck Functions ---
         function updateProgress() {
             const cards = decks[activeDeckId]?.cards || [];
-            if (cards.length === 0) {
-                progressBar.style.width = '0%';
-                progressText.textContent = `0 / 0`;
-                return;
-            }
-            const progress = (currentCardIndex / cards.length) * 100;
-            progressBar.style.width = `${progress}%`;
+            progressBar.style.width = cards.length === 0 ? '0%' : `${(currentCardIndex / cards.length) * 100}%`;
             progressText.textContent = `${currentCardIndex} / ${cards.length}`;
         }
-
         function displayCard(index) {
             const cards = decks[activeDeckId]?.cards || [];
-            if (cards.length === 0) {
-                noCardsMessage.classList.remove('hidden');
-                cardFront.classList.add('hidden');
-                cardBack.classList.remove('visible');
-                showAnswerContainer.classList.add('hidden');
-                updateProgress();
-                return;
+            const hasCards = cards.length > 0;
+            noCardsMessage.classList.toggle('hidden', hasCards); 
+            cardFront.classList.toggle('hidden', !hasCards);
+            showAnswerContainer.classList.toggle('hidden', !hasCards);
+            if (!hasCards) { 
+                updateProgress(); 
+                return; 
             }
-            noCardsMessage.classList.add('hidden');
-            if (index >= cards.length) {
-                showCompletionScreen();
-                return;
+            if (index >= cards.length) { 
+                showCompletionScreen(); 
+                return; 
             }
-            showAnswerContainer.classList.remove('hidden');
             const card = cards[index];
-            cardQuestion.textContent = card.question;
+            cardQuestion.textContent = card.question; 
             cardAnswer.textContent = card.answer;
             cardExplanation.textContent = card.explanation || '';
             showExplanationBtn.classList.toggle('hidden', !card.explanation);
-            updateProgress();
+            updateProgress(); 
             resetCardState();
         }
-        
         function flipCard() {
             if (!activeDeckId || decks[activeDeckId].cards.length === 0) return;
-            isFlipped = true;
-            cardFront.classList.add('hidden');
+            isFlipped = true; 
+            cardFront.classList.add('hidden'); 
             cardBack.classList.add('visible');
-            showAnswerContainer.classList.add('hidden');
+            showAnswerContainer.classList.add('hidden'); 
             ratingContainer.classList.remove('hidden');
         }
-
         function resetCardState() {
-            isFlipped = false;
-            cardFront.classList.remove('hidden');
+            isFlipped = false; 
+            cardFront.classList.remove('hidden'); 
             cardBack.classList.remove('visible');
-            showAnswerContainer.classList.remove('hidden');
+            showAnswerContainer.classList.remove('hidden'); 
             ratingContainer.classList.add('hidden');
-            explanationContainer.classList.remove('visible');
+            explanationContainer.classList.remove('visible'); 
             showExplanationBtn.textContent = 'Show Explanation';
         }
-        
         function handleRating(e) {
             const rating = e.target.dataset.rating;
-            switch(rating) {
-                case 'hard': sessionScore += 1; break;
-                case 'good': sessionScore += 3; break;
-                case 'easy': sessionScore += 5; break;
-                default: sessionScore += 0;
-            }
+            const currentCard = decks[activeDeckId].cards[currentCardIndex];
+            const record = { 
+                id: generateUUID(), 
+                deckId: activeDeckId, 
+                deckName: decks[activeDeckId].name, 
+                cardId: currentCard.id, 
+                cardQuestion: currentCard.question, 
+                timestamp: new Date().toISOString(), 
+                rating: rating 
+            };
+            learningHistory.unshift(record); 
+            saveLearningHistory();
             currentCardIndex++; 
             displayCard(currentCardIndex); 
         }
-
         function showCompletionScreen() { 
             flashcardDeck.classList.add('hidden'); 
-            completionScreen.classList.remove('hidden');
-            recordSession();
+            completionScreen.classList.remove('hidden'); 
         }
-
-        function recordSession() {
-            if (!activeDeckId) return;
-            const record = {
-                id: `session-${Date.now()}`,
-                deckId: activeDeckId,
-                deckName: decks[activeDeckId].name,
-                timestamp: new Date().toISOString(),
-                score: sessionScore
-            };
-            learningHistory.unshift(record);
-            saveLearningHistory();
-        }
-
-        function restartSession() {
-            currentCardIndex = 0;
-            sessionScore = 0;
+        function restartSession() { 
+            currentCardIndex = 0; 
             completionScreen.classList.add('hidden');
-            flashcardDeck.classList.remove('hidden');
-            displayCard(currentCardIndex);
+            flashcardDeck.classList.remove('hidden'); 
+            displayCard(currentCardIndex); 
         }
-        showExplanationBtn.addEventListener('click', () => {
-            explanationContainer.classList.toggle('visible');
-            showExplanationBtn.textContent = explanationContainer.classList.contains('visible') ? 'Hide Explanation' : 'Show Explanation';
+        showExplanationBtn.addEventListener('click', () => { 
+            explanationContainer.classList.toggle('visible'); 
+            showExplanationBtn.textContent = explanationContainer.classList.contains('visible') ? 'Hide Explanation' : 'Show Explanation'; 
         });
 
         // --- Manage Cards UI & Modal ---
         function openModal() { cardEditorModal.classList.remove('hidden'); }
         function closeModal() { cardEditorModal.classList.add('hidden'); resetCardEditor(); }
-
         function renderManageList() {
-            cardsListContainer.innerHTML = '';
+            cardsListContainer.innerHTML = ''; 
             const cards = decks[activeDeckId]?.cards || [];
             if (cards.length === 0) {
-                cardsListContainer.innerHTML = `<p class="text-sm text-slate-400">This deck is empty. Add or generate cards!</p>`;
+                cardsListContainer.innerHTML = `<p class="text-sm text-slate-400">This deck is empty. Add or generate cards!</p>`; 
                 return;
             }
             cards.forEach((card, index) => {
@@ -709,67 +672,61 @@
                 cardsListContainer.appendChild(cardEl);
             });
         }
-
         function handleCardListClick(e) {
             const deleteBtn = e.target.closest('.delete-card-btn');
             if (deleteBtn) {
                 const index = parseInt(deleteBtn.dataset.index, 10);
-                decks[activeDeckId].cards.splice(index, 1);
-                saveDecks();
-                renderManageList();
+                const card = decks[activeDeckId].cards[index];
+                const message = `This will permanently delete the card "${card.question}" and its learning history. This action cannot be undone.`;
+                showConfirmationModal(message, () => {
+                    learningHistory = learningHistory.filter(record => record.cardId !== card.id);
+                    saveLearningHistory();
+                    decks[activeDeckId].cards.splice(index, 1);
+                    saveDecks();
+                    renderManageList();
+                });
             } else {
                 const cardEl = e.target.closest('[data-index]');
-                if (cardEl) {
-                    populateCardEditor(parseInt(cardEl.dataset.index, 10));
-                    openModal();
+                if (cardEl) { 
+                    populateCardEditor(parseInt(cardEl.dataset.index, 10)); 
+                    openModal(); 
                 }
             }
         }
-
         function populateCardEditor(index) {
             const card = decks[activeDeckId].cards[index];
-            editingCardIndex = index;
+            editingCardIndex = index; 
             cardEditorTitle.textContent = 'Edit Card';
-            editQuestion.value = card.question;
-            editAnswer.value = card.answer;
+            editQuestion.value = card.question; 
+            editAnswer.value = card.answer; 
             editExplanation.value = card.explanation || '';
             saveCardBtn.textContent = 'Update Card';
         }
-
         function resetCardEditor() {
-            editingCardIndex = null;
+            editingCardIndex = null; 
             cardEditorForm.reset();
-            cardEditorTitle.textContent = 'Add New Card';
+            cardEditorTitle.textContent = 'Add New Card'; 
             saveCardBtn.textContent = 'Add Card';
         }
-        
         cardEditorForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const question = editQuestion.value.trim();
-            const answer = editAnswer.value.trim();
-            const explanation = editExplanation.value.trim();
+            const question = editQuestion.value.trim(), answer = editAnswer.value.trim(), explanation = editExplanation.value.trim();
             if (!question || !answer) return;
-
-            const cardData = { question, answer, explanation };
             if (editingCardIndex !== null) {
-                decks[activeDeckId].cards[editingCardIndex] = cardData;
+                const card = decks[activeDeckId].cards[editingCardIndex];
+                card.question = question; 
+                card.answer = answer; 
+                card.explanation = explanation;
             } else {
-                decks[activeDeckId].cards.unshift(cardData);
+                decks[activeDeckId].cards.unshift({ id: generateUUID(), question, answer, explanation });
             }
-            saveDecks();
-            renderManageList();
+            saveDecks(); 
+            renderManageList(); 
             closeModal();
         });
-        
-        addCardBtn.addEventListener('click', () => {
-            resetCardEditor();
-            openModal();
-        });
+        addCardBtn.addEventListener('click', () => { resetCardEditor(); openModal(); });
         cancelEditBtn.addEventListener('click', closeModal);
-        cardEditorModal.addEventListener('click', (e) => {
-            if (e.target === cardEditorModal) closeModal();
-        });
-
+        cardEditorModal.addEventListener('click', (e) => { if (e.target === cardEditorModal) closeModal(); });
 
         // --- AI Feature Handlers ---
         function updateAiFeatureAvailability() {
@@ -777,33 +734,29 @@
             aiGenerationContainer.querySelectorAll('input, button').forEach(el => el.disabled = !hasApiKey);
             aiNeedsKeyMessage.classList.toggle('hidden', hasApiKey);
         }
-        
         async function handleGenerateCards(e) {
             e.preventDefault();
-            const topic = aiTopicInput.value.trim();
-            const count = parseInt(aiCardCountInput.value, 10) || 10;
+            const topic = aiTopicInput.value.trim(), count = parseInt(aiCardCountInput.value, 10) || 10;
             if (!topic || !activeDeckId || count < 1) return;
-
-            generateCardsBtn.disabled = true;
+            generateCardsBtn.disabled = true; 
             generateCardsBtn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Generating...`;
             aiError.classList.add('hidden');
-
             const schema = { type: "ARRAY", items: { type: "OBJECT", properties: { "question": { "type": "STRING" }, "answer": { "type": "STRING" }, "explanation": { "type": "STRING" }}, required: ["question", "answer"] } };
             const prompt = `Generate ${count} flashcards for the topic "${topic}". For each card, provide a "question", a concise "answer", and an "explanation". The explanation should be a fuller, more detailed description of the answer, but leave it as an empty string if the term is simple vocabulary where no explanation is needed.`;
             const payload = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json", responseSchema: schema } };
-
             try {
-                const resultText = await callGemini(payload);
+                const resultText = await callGemini(payload); 
                 const newCards = JSON.parse(resultText);
-                decks[activeDeckId].cards.unshift(...newCards);
-                saveDecks();
-                renderManageList();
+                const processedCards = newCards.map(card => ({...card, id: generateUUID()}));
+                decks[activeDeckId].cards.unshift(...processedCards);
+                saveDecks(); 
+                renderManageList(); 
                 aiTopicInput.value = '';
             } catch (error) {
-                aiError.textContent = `Could not generate cards. ${error.message}`;
+                aiError.textContent = `Could not generate cards. ${error.message}`; 
                 aiError.classList.remove('hidden');
             } finally {
-                generateCardsBtn.disabled = false;
+                generateCardsBtn.disabled = false; 
                 generateCardsBtn.textContent = 'Generate Cards';
             }
         }
@@ -811,138 +764,93 @@
         // --- Learning History ---
         function renderLearningHistory(searchTerm = '') {
             learningHistoryContainer.innerHTML = '';
-            
             const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-            const filteredHistory = learningHistory.filter(record => 
-                record.deckName.toLowerCase().includes(normalizedSearchTerm)
-            );
-
+            const filteredHistory = learningHistory.filter(r => r.deckName.toLowerCase().includes(normalizedSearchTerm) || r.cardQuestion.toLowerCase().includes(normalizedSearchTerm));
             if (filteredHistory.length === 0) {
-                if (normalizedSearchTerm) {
-                    learningHistoryContainer.innerHTML = `<p class="text-center text-slate-500 dark:text-slate-400">No results found for "${searchTerm}".</p>`;
-                } else {
-                    learningHistoryContainer.innerHTML = `<p class="text-center text-slate-500 dark:text-slate-400">No learning history yet. Complete a study session to see your progress!</p>`;
-                }
+                learningHistoryContainer.innerHTML = `<p class="text-center text-slate-500 dark:text-slate-400">${searchTerm ? `No results for "${searchTerm}".` : 'No learning history yet.'}</p>`;
                 return;
             }
-
-            const table = document.createElement('table');
-            table.className = 'w-full text-sm text-left';
-            table.innerHTML = `
-                <thead class="text-xs text-slate-700 uppercase bg-slate-50 dark:bg-slate-700 dark:text-slate-400">
-                    <tr>
-                        <th scope="col" class="px-4 py-3">Deck</th>
-                        <th scope="col" class="px-4 py-3">Date</th>
-                        <th scope="col" class="px-4 py-3">Score</th>
-                        <th scope="col" class="px-4 py-3"><span class="sr-only">Actions</span></th>
-                    </tr>
-                </thead>
-            `;
+            const table = document.createElement('table'); 
+            table.className = 'w-full text-sm text-left table-fixed';
+            table.innerHTML = `<thead class="text-xs text-slate-700 uppercase bg-slate-50 dark:bg-slate-700 dark:text-slate-400"><tr><th scope="col" class="px-4 py-3 w-3/5">Card</th><th scope="col" class="px-4 py-3">Rating</th><th scope="col" class="px-4 py-3 text-right">Action</th></tr></thead>`;
             const tbody = document.createElement('tbody');
             filteredHistory.forEach(record => {
-                const tr = document.createElement('tr');
+                const tr = document.createElement('tr'); 
                 tr.className = 'border-b dark:border-slate-700';
-                const date = new Date(record.timestamp).toLocaleDateString();
-                tr.innerHTML = `
-                    <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">${record.deckName}</td>
-                    <td class="px-4 py-3 text-slate-500 dark:text-slate-400">${date}</td>
-                    <td class="px-4 py-3 font-semibold">${record.score}</td>
-                    <td class="px-4 py-3 text-right">
-                        <button class="font-medium text-sky-600 dark:text-sky-500 hover:underline study-history-btn" data-deck-id="${record.deckId}">Study</button>
-                        <button class="font-medium text-red-600 dark:text-red-500 hover:underline ml-3 delete-history-btn" data-record-id="${record.id}">Delete</button>
-                    </td>
-                `;
+                const date = new Date(record.timestamp).toLocaleString();
+                tr.innerHTML = `<td class="px-4 py-3"><p class="font-medium text-slate-900 dark:text-white truncate">${record.cardQuestion}</p><p class="text-xs text-slate-500 dark:text-slate-400 truncate">in "${record.deckName}" on ${date}</p></td><td class="px-4 py-3 font-semibold capitalize">${record.rating}</td><td class="px-4 py-3 text-right"><button class="font-medium text-sky-600 dark:text-sky-500 hover:text-sky-400 study-history-btn p-1" data-deck-id="${record.deckId}" title="Study this deck"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" /></svg></button></td>`;
                 tbody.appendChild(tr);
             });
-            table.appendChild(tbody);
+            table.appendChild(tbody); 
             learningHistoryContainer.appendChild(table);
         }
-
         learningHistoryContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('study-history-btn')) {
-                const deckId = e.target.dataset.deckId;
-                if (decks[deckId]) {
-                    activeDeckId = deckId;
-                    deckTitleStudy.textContent = decks[activeDeckId].name;
-                    restartSession();
-                    showScreen('mainDeck');
-                } else {
-                    alert('This deck no longer exists.');
+            const studyBtn = e.target.closest('.study-history-btn');
+            if (studyBtn) {
+                const deckId = studyBtn.dataset.deckId;
+                if (decks[deckId]) { 
+                    activeDeckId = deckId; 
+                    deckTitleStudy.textContent = decks[deckId].name; 
+                    restartSession(); 
+                    showScreen('mainDeck'); 
+                } else { 
+                    showWarningModal('This deck no longer exists.'); 
                 }
-            } else if (e.target.classList.contains('delete-history-btn')) {
-                const recordId = e.target.dataset.recordId;
-                learningHistory = learningHistory.filter(r => r.id !== recordId);
-                saveLearningHistory();
-                renderLearningHistory(learningSearchInput.value);
             }
         });
-
         downloadHistoryBtn.addEventListener('click', () => {
             if(learningHistory.length === 0) return;
-            const yamlString = jsyaml.dump(learningHistory);
+            const yamlString = jsyaml.dump(learningHistory); 
             const blob = new Blob([yamlString], { type: 'text/yaml' });
             const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
+            link.href = URL.createObjectURL(blob); 
             link.download = 'learning_history.yaml';
-            link.click();
+            link.click(); 
             URL.revokeObjectURL(link.href);
         });
-
         uploadHistoryBtn.addEventListener('click', () => historyUploadInput.click());
         historyUploadInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+            const file = e.target.files[0]; 
+            if (!file) return; 
             const reader = new FileReader();
             reader.onload = (event) => {
                 try {
                     const importedHistory = jsyaml.load(event.target.result);
                     if (Array.isArray(importedHistory)) {
                         const existingIds = new Set(learningHistory.map(r => r.id));
-                        const newRecords = importedHistory.filter(r => !existingIds.has(r.id));
+                        const newRecords = importedHistory.filter(r => r && r.id && !existingIds.has(r.id));
                         learningHistory.unshift(...newRecords);
                         learningHistory.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-                        saveLearningHistory();
+                        saveLearningHistory(); 
                         renderLearningHistory(learningSearchInput.value);
                     }
-                } catch (err) {
-                    console.error("Failed to parse history file", err);
-                    alert("Could not read the uploaded history file.");
+                } catch (err) { 
+                    console.error("Failed to parse history file", err); 
+                    showWarningModal("Could not read the uploaded history file."); 
                 }
             };
-            reader.readAsText(file);
+            reader.readAsText(file); 
             e.target.value = '';
         });
 
-
         // --- INITIALIZATION ---
-        function isLocalStorageAvailable() {
-            let storage;
-            try {
-                storage = window.localStorage;
-                const x = '__storage_test__';
-                storage.setItem(x, x);
-                storage.removeItem(x);
-                return true;
-            } catch (e) {
-                return false;
-            }
+        function isLocalStorageAvailable() { 
+            try { 
+                const x = '__storage_test__'; 
+                window.localStorage.setItem(x, x); 
+                window.localStorage.removeItem(x); 
+                return true; 
+            } catch (e) { 
+                return false; 
+            } 
         }
-
         function init() {
-            console.log("Initializing app...");
-
-            if (!isLocalStorageAvailable()) {
-                console.warn("Local storage is not available.");
-                document.getElementById('storage-warning').classList.remove('hidden');
-            }
-
-            loadDecks();
-            loadApiKey();
+            if (!isLocalStorageAvailable()) document.getElementById('storage-warning').classList.remove('hidden');
+            loadDecks(); 
+            loadApiKey(); 
             loadLearningHistory();
-            renderDeckList();
+            renderDeckList(); 
             renderLearningHistory();
-
-            console.log("Attaching event listeners...");
             decksContainer.addEventListener('click', handleDeckListActions);
             showAnswerBtn.addEventListener('click', flipCard);
             ratingButtons.forEach(button => button.addEventListener('click', handleRating));
@@ -950,27 +858,18 @@
             cardsListContainer.addEventListener('click', handleCardListClick);
             generateCardsBtn.addEventListener('click', handleGenerateCards);
             learningSearchInput.addEventListener('input', () => renderLearningHistory(learningSearchInput.value));
-            goToSettingsLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                showScreen('settings');
-            });
-
+            goToSettingsLink.addEventListener('click', (e) => { e.preventDefault(); showScreen('settings'); });
             backToMainFromCompleteBtn.addEventListener('click', () => {
-                showScreen('mainView');
+                showScreen('mainView'); 
                 showTab('decks');
-                setTimeout(() => { // Use timeout to ensure the element is visible before scrolling
+                setTimeout(() => {
                     const deckEl = decksContainer.querySelector(`[data-deck-id="${activeDeckId}"]`);
-                    if (deckEl) {
-                        deckEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
+                    if (deckEl) deckEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }, 100); 
             });
-            
-            console.log("Initialization complete. Showing initial screen.");
-            showTab('decks');
+            showTab('decks'); 
             showScreen('mainView');
         }
-
         init();
     });
     </script>
