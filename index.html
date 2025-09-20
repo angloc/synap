@@ -649,6 +649,12 @@
             flashcardDeck.classList.remove('hidden'); 
             displayCard(currentCardIndex); 
         }
+        function startSessionAtIndex(index) {
+            currentCardIndex = index;
+            completionScreen.classList.add('hidden');
+            flashcardDeck.classList.remove('hidden');
+            displayCard(currentCardIndex);
+        }
         showExplanationBtn.addEventListener('click', () => { 
             explanationContainer.classList.toggle('visible'); 
             showExplanationBtn.textContent = explanationContainer.classList.contains('visible') ? 'Hide Explanation' : 'Show Explanation'; 
@@ -772,32 +778,59 @@
             }
             const table = document.createElement('table'); 
             table.className = 'w-full text-sm text-left table-fixed';
-            table.innerHTML = `<thead class="text-xs text-slate-700 uppercase bg-slate-50 dark:bg-slate-700 dark:text-slate-400"><tr><th scope="col" class="px-4 py-3 w-3/5">Card</th><th scope="col" class="px-4 py-3">Rating</th><th scope="col" class="px-4 py-3 text-right">Action</th></tr></thead>`;
+            table.innerHTML = `<thead class="text-xs text-slate-700 uppercase bg-slate-50 dark:bg-slate-700 dark:text-slate-400"><tr><th scope="col" class="px-4 py-3">Details</th><th scope="col" class="px-4 py-3 text-right">Rating</th></tr></thead>`;
             const tbody = document.createElement('tbody');
             filteredHistory.forEach(record => {
                 const tr = document.createElement('tr'); 
                 tr.className = 'border-b dark:border-slate-700';
                 const date = new Date(record.timestamp).toLocaleString();
-                tr.innerHTML = `<td class="px-4 py-3"><p class="font-medium text-slate-900 dark:text-white truncate">${record.cardQuestion}</p><p class="text-xs text-slate-500 dark:text-slate-400 truncate">in "${record.deckName}" on ${date}</p></td><td class="px-4 py-3 font-semibold capitalize">${record.rating}</td><td class="px-4 py-3 text-right"><button class="font-medium text-sky-600 dark:text-sky-500 hover:text-sky-400 study-history-btn p-1" data-deck-id="${record.deckId}" title="Study this deck"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" /></svg></button></td>`;
+                tr.innerHTML = `
+                    <td class="px-4 py-3">
+                        <p class="font-medium text-slate-900 dark:text-white truncate cursor-pointer hover:text-sky-500 study-card-link" data-deck-id="${record.deckId}" data-card-id="${record.cardId}" title="Study from this card">${record.cardQuestion}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">in <span class="font-semibold cursor-pointer hover:underline study-deck-link" data-deck-id="${record.deckId}" title="Study this deck">${record.deckName}</span></p>
+                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">${date}</p>
+                    </td>
+                    <td class="px-4 py-3 font-semibold capitalize text-right">${record.rating}</td>
+                `;
                 tbody.appendChild(tr);
             });
             table.appendChild(tbody); 
             learningHistoryContainer.appendChild(table);
         }
+
         learningHistoryContainer.addEventListener('click', (e) => {
-            const studyBtn = e.target.closest('.study-history-btn');
-            if (studyBtn) {
-                const deckId = studyBtn.dataset.deckId;
-                if (decks[deckId]) { 
-                    activeDeckId = deckId; 
-                    deckTitleStudy.textContent = decks[deckId].name; 
-                    restartSession(); 
-                    showScreen('mainDeck'); 
-                } else { 
-                    showWarningModal('This deck no longer exists.'); 
+            const cardLink = e.target.closest('.study-card-link');
+            const deckLink = e.target.closest('.study-deck-link');
+
+            if (cardLink) {
+                const deckId = cardLink.dataset.deckId;
+                const cardId = cardLink.dataset.cardId;
+                if (decks[deckId]) {
+                    const cardIndex = decks[deckId].cards.findIndex(c => c.id === cardId);
+                    if (cardIndex !== -1) {
+                        activeDeckId = deckId;
+                        deckTitleStudy.textContent = decks[deckId].name;
+                        startSessionAtIndex(cardIndex);
+                        showScreen('mainDeck');
+                    } else {
+                        showWarningModal('This card no longer exists in the deck.');
+                    }
+                } else {
+                    showWarningModal('This deck no longer exists.');
+                }
+            } else if (deckLink) {
+                const deckId = deckLink.dataset.deckId;
+                if (decks[deckId]) {
+                    activeDeckId = deckId;
+                    deckTitleStudy.textContent = decks[deckId].name;
+                    restartSession();
+                    showScreen('mainDeck');
+                } else {
+                    showWarningModal('This deck no longer exists.');
                 }
             }
         });
+
         downloadHistoryBtn.addEventListener('click', () => {
             if(learningHistory.length === 0) return;
             const yamlString = jsyaml.dump(learningHistory); 
