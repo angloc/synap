@@ -44,7 +44,7 @@
         .schedule-color-red { color: #ef4444; } /* red-500 */
         .schedule-color-green { color: #22c55e; } /* green-500 */
         .schedule-color-blue { color: #3b82f6; } /* blue-500 */
-
+        .schedule-color-gray { color: #64748b; } /* slate-500 */
     </style>
 </head>
 <body class="bg-slate-100 dark:bg-slate-900 flex items-center justify-center min-h-screen p-4 transition-colors duration-300">
@@ -306,7 +306,7 @@
             document.body.innerHTML = `<div class="w-full max-w-md mx-auto my-8 p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md text-center"><h1 class="text-2xl font-bold text-red-600 dark:text-red-400">Initialization Error</h1><p class="mt-2 text-slate-700 dark:text-slate-200">Could not load required libraries. Please check your internet connection and refresh.</p></div>`;
             return; 
         }
-        const { fsrs, generatorParameters, Rating, createEmptyCard } = window.tsfsrs;
+        const { fsrs, generatorParameters, Rating, createEmptyCard, State } = window.tsfsrs;
         const DECKS_STORAGE_KEY = 'flashcard-app-decks-v4', API_KEY_STORAGE_KEY = 'flashcard-app-gemini-api-key', LEARNING_HISTORY_STORAGE_KEY = 'flashcard-app-learning-history-v2';
         
         let decks = {}, learningHistory = [], activeDeckId = null, currentCardIndex = 0, isFlipped = false, editingCardIndex = null, geminiApiKey = '', confirmCallback = null;
@@ -822,8 +822,8 @@
             history.forEach((review) => {
                 const reviewDate = new Date(review.timestamp);
                 const rating = mapRatingToFSRSRating(review.rating);
-                const scheduling_cards = f.repeat(card, reviewDate);
-                card = scheduling_cards[rating].card;
+                const scheduledCard = f.next(card, reviewDate, rating);
+                card = scheduledCard.card;
             });
             return card;
         };
@@ -833,32 +833,41 @@
             const itemsWithStatus = allItems.map(item => {
                 const { history } = item;
                 if (history.length === 0) {
-                    return { ...item, color: 'red', p_recall: 0, next_review: now };
+                    return { ...item, color: 'gray', p_recall: null, next_review: now };
                 }
                 const fsrsCard = calculateItemStateWithFSRS(history);
-                if (!fsrsCard.last_review) {
-                    return { ...item, color: 'red', p_recall: 0, next_review: now };
+
+                if (fsrsCard.state === State.Review && fsrsCard.stability > 0 && history.length > 1) {
+                    const p_recall = f.get_retrievability(fsrsCard, now) || 0;
+                    let color;
+                    if (p_recall < 0.80) { // Overdue
+                        color = 'red';
+                    } else if (p_recall < 0.95) { // Optimal
+                        color = 'green';
+                    } else { // Premature
+                        color = 'blue';
+                    }
+                    
+                    const scheduling_cards = f.repeat(fsrsCard, now);
+                    const nextReviewDate = scheduling_cards[Rating.Good].card.due;
+
+                    return { ...item, color, p_recall, next_review: nextReviewDate };
+                } else {
+                    // Card is in New, Learning, or Relearning state, or it's a new "Review" card.
+                    const scheduling_cards = f.repeat(fsrsCard, now);
+                    const nextReviewDate = scheduling_cards[Rating.Good].card.due;
+                    return { ...item, color: 'gray', p_recall: null, next_review: nextReviewDate };
                 }
-
-                const p_recall = f.get_retrievability(fsrsCard, now) || 0;
-
-                let color;
-                if (p_recall < 0.80) { // Overdue
-                    color = 'red';
-                } else if (p_recall < 0.95) { // Optimal
-                    color = 'green';
-                } else { // Premature
-                    color = 'blue';
-                }
-                
-                const scheduling_cards = f.repeat(fsrsCard, now);
-                const nextReviewDate = scheduling_cards && scheduling_cards[Rating.Good] ? scheduling_cards[Rating.Good].card.due : now;
-
-
-                return { ...item, color, p_recall, next_review: nextReviewDate };
             });
 
-            itemsWithStatus.sort((a, b) => a.p_recall - b.p_recall);
+            itemsWithStatus.sort((a, b) => {
+                const aRecall = a.p_recall ?? -1; // Nulls (learning cards) are most urgent
+                const bRecall = b.p_recall ?? -1;
+                if (aRecall !== bRecall) {
+                    return aRecall - bRecall;
+                }
+                return a.next_review - b.next_review;
+            });
             return itemsWithStatus;
         };
 
@@ -882,13 +891,16 @@
                 const tr = document.createElement('tr'); 
                 tr.className = 'border-b dark:border-slate-700';
                 const nextDate = item.next_review ? item.next_review.toLocaleDateString() : 'N/A';
+                const recallText = item.p_recall !== null ? `${Math.round(item.p_recall * 100)}%` : '--';
+                const recallTextColor = item.p_recall !== null ? 'text-slate-500 dark:text-slate-400' : 'text-slate-400 dark:text-slate-500';
+
                 tr.innerHTML = `
                     <td class="px-4 py-3">
                         <p class="font-medium truncate cursor-pointer hover:underline schedule-card-link schedule-color-${item.color}" data-deck-id="${item.deckId}" data-card-id="${item.id}" title="Study from this card">${item.cardQuestion}</p>
                         <p class="text-xs text-slate-500 dark:text-slate-400">in <span class="font-semibold cursor-pointer hover:underline schedule-deck-link" data-deck-id="${item.deckId}" title="Study this deck">${item.deckName}</span></p>
                     </td>
-                    <td class="px-4 py-3 text-right text-slate-500 dark:text-slate-400">
-                        <p class="font-semibold">${Math.round(item.p_recall * 100)}%</p>
+                    <td class="px-4 py-3 text-right ${recallTextColor}">
+                        <p class="font-semibold">${recallText}</p>
                         <p class="text-xs">${nextDate}</p>
                     </td>
                 `;
