@@ -7,6 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <script type="module">
+        import * as tsFsrs from 'https://cdn.jsdelivr.net/npm/ts-fsrs@latest/+esm';
+        window.tsfsrs = tsFsrs
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -37,6 +41,10 @@
         .card-back.visible { opacity: 1; transform: translateY(0); position: relative; }
         .explanation-content { transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out; max-height: 0; opacity: 0; overflow: hidden; }
         .explanation-content.visible { max-height: 200px; opacity: 1; }
+        .schedule-color-red { color: #ef4444; } /* red-500 */
+        .schedule-color-green { color: #22c55e; } /* green-500 */
+        .schedule-color-blue { color: #3b82f6; } /* blue-500 */
+
     </style>
 </head>
 <body class="bg-slate-100 dark:bg-slate-900 flex items-center justify-center min-h-screen p-4 transition-colors duration-300">
@@ -62,6 +70,7 @@
             <div class="border-b border-slate-200 dark:border-slate-700 mb-6">
                 <nav class="-mb-px flex space-x-6" aria-label="Tabs">
                     <button id="tab-decks" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">My Decks</button>
+                    <button id="tab-schedule" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">My Schedule</button>
                     <button id="tab-learning" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">My Learning</button>
                 </nav>
             </div>
@@ -81,6 +90,13 @@
                          <button id="upload-decks-btn" class="w-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3 px-4 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600">Upload Decks</button>
                          <input type="file" id="deck-upload-input" class="hidden" accept=".zip">
                     </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Schedule -->
+            <div id="tab-content-schedule" class="tab-content">
+                <div id="schedule-container" class="space-y-3 mb-6 max-h-[60vh] overflow-y-auto pr-2">
+                    <!-- Schedule will be dynamically inserted here -->
                 </div>
             </div>
 
@@ -286,18 +302,21 @@
     document.addEventListener('DOMContentLoaded', () => {
         // --- Libraries & Constants ---
         const { JSZip, jsyaml } = window;
-        if (!JSZip || !jsyaml) { 
+        if (!window.tsfsrs || !JSZip || !jsyaml) { 
             document.body.innerHTML = `<div class="w-full max-w-md mx-auto my-8 p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md text-center"><h1 class="text-2xl font-bold text-red-600 dark:text-red-400">Initialization Error</h1><p class="mt-2 text-slate-700 dark:text-slate-200">Could not load required libraries. Please check your internet connection and refresh.</p></div>`;
             return; 
         }
+        const { fsrs, generatorParameters, Rating, createEmptyCard } = window.tsfsrs;
         const DECKS_STORAGE_KEY = 'flashcard-app-decks-v4', API_KEY_STORAGE_KEY = 'flashcard-app-gemini-api-key', LEARNING_HISTORY_STORAGE_KEY = 'flashcard-app-learning-history-v2';
         
         let decks = {}, learningHistory = [], activeDeckId = null, currentCardIndex = 0, isFlipped = false, editingCardIndex = null, geminiApiKey = '', confirmCallback = null;
+        const f = fsrs(generatorParameters());
 
         // --- DOM Elements ---
         const screens = { mainView: document.getElementById('main-view-screen'), mainDeck: document.getElementById('main-deck-screen'), manageCards: document.getElementById('manage-cards-screen'), settings: document.getElementById('settings-screen') };
-        const tabDecks = document.getElementById('tab-decks'), tabLearning = document.getElementById('tab-learning'), tabContentDecks = document.getElementById('tab-content-decks'), tabContentLearning = document.getElementById('tab-content-learning');
+        const tabDecks = document.getElementById('tab-decks'), tabSchedule = document.getElementById('tab-schedule'), tabLearning = document.getElementById('tab-learning'), tabContentDecks = document.getElementById('tab-content-decks'), tabContentSchedule = document.getElementById('tab-content-schedule'), tabContentLearning = document.getElementById('tab-content-learning');
         const decksContainer = document.getElementById('decks-container'), createDeckForm = document.getElementById('create-deck-form'), newDeckNameInput = document.getElementById('new-deck-name'), downloadBtn = document.getElementById('download-decks-btn'), uploadBtn = document.getElementById('upload-decks-btn'), uploadInput = document.getElementById('deck-upload-input'), settingsBtn = document.getElementById('settings-btn');
+        const scheduleContainer = document.getElementById('schedule-container');
         const learningHistoryContainer = document.getElementById('learning-history-container'), downloadHistoryBtn = document.getElementById('download-history-btn'), uploadHistoryBtn = document.getElementById('upload-history-btn'), historyUploadInput = document.getElementById('history-upload-input'), learningSearchInput = document.getElementById('learning-search-input');
         const cardQuestion = document.getElementById('card-question'), cardAnswer = document.getElementById('card-answer'), cardFront = document.getElementById('card-front'), cardBack = document.getElementById('card-back'), noCardsMessage = document.getElementById('no-cards-message'), progressBar = document.getElementById('progress-bar'), progressText = document.getElementById('progress-text'), showAnswerBtn = document.getElementById('show-answer-btn'), showAnswerContainer = document.getElementById('show-answer-container'), ratingContainer = document.getElementById('rating-container'), ratingButtons = document.querySelectorAll('.rating-btn'), flashcardDeck = document.getElementById('flashcard-deck'), completionScreen = document.getElementById('completion-screen'), restartBtn = document.getElementById('restart-btn'), showExplanationBtn = document.getElementById('show-explanation-btn'), explanationContainer = document.getElementById('explanation-container'), cardExplanation = document.getElementById('card-explanation');
         const addCardBtn = document.getElementById('add-card-btn'), cardEditorModal = document.getElementById('card-editor-modal'), cardEditorForm = document.getElementById('card-editor-form'), cardEditorTitle = document.getElementById('card-editor-title'), editQuestion = document.getElementById('edit-question'), editAnswer = document.getElementById('edit-answer'), editExplanation = document.getElementById('edit-explanation'), saveCardBtn = document.getElementById('save-card-btn'), cancelEditBtn = document.getElementById('cancel-edit-btn'), cardsListContainer = document.getElementById('cards-list'), deckTitleStudy = document.getElementById('deck-title-study'), deckTitleManage = document.getElementById('deck-title-manage');
@@ -312,14 +331,17 @@
             if (screens[name]) { 
                 screens[name].classList.add('active'); 
                 if (name === 'manageCards') updateAiFeatureAvailability(); 
-                else if (name === 'mainView') { renderDeckList(); renderLearningHistory(); } 
+                else if (name === 'mainView') { renderDeckList(); renderLearningHistory(); renderSchedule(); } 
             } 
         };
         const showTab = (tabName) => { 
             tabDecks.classList.toggle('active', tabName === 'decks'); 
-            tabLearning.classList.toggle('active', tabName !== 'decks'); 
+            tabSchedule.classList.toggle('active', tabName === 'schedule');
+            tabLearning.classList.toggle('active', tabName === 'learning'); 
             tabContentDecks.classList.toggle('active', tabName === 'decks'); 
-            tabContentLearning.classList.toggle('active', tabName !== 'decks'); 
+            tabContentSchedule.classList.toggle('active', tabName === 'schedule');
+            tabContentLearning.classList.toggle('active', tabName === 'learning'); 
+            if(tabName === 'schedule') renderSchedule();
         };
         const showConfirmationModal = (message, onConfirm) => { 
             confirmationMessage.textContent = message; 
@@ -342,6 +364,7 @@
         closeWarningBtn.addEventListener('click', () => warningModal.classList.add('hidden'));
 
         tabDecks.addEventListener('click', () => showTab('decks')); 
+        tabSchedule.addEventListener('click', () => showTab('schedule'));
         tabLearning.addEventListener('click', () => showTab('learning'));
         document.getElementById('back-to-main-view-btn-study').addEventListener('click', () => showScreen('mainView'));
         document.getElementById('back-to-main-view-btn-manage').addEventListener('click', () => showScreen('mainView'));
@@ -767,7 +790,109 @@
             }
         }
 
-        // --- Learning History ---
+        // --- FSRS Scheduling Functions ---
+        const mapRatingToFSRSRating = (rating) => {
+            switch (rating.toLowerCase()) {
+                case 'again': return Rating.Again;
+                case 'hard': return Rating.Hard;
+                case 'good': return Rating.Good;
+                case 'easy': return Rating.Easy;
+                default: return Rating.Again;
+            }
+        };
+
+        const groupReviewsByItem = (rawReviews) => {
+            const itemsMap = new Map();
+            rawReviews.forEach(review => {
+                const { cardId, deckId, deckName, cardQuestion, timestamp, rating } = review;
+                if (!itemsMap.has(cardId)) {
+                    itemsMap.set(cardId, {
+                        id: cardId, deckId: deckId, deckName: deckName,
+                        cardQuestion: cardQuestion, history: [],
+                    });
+                }
+                itemsMap.get(cardId).history.push({ timestamp, rating });
+            });
+            return Array.from(itemsMap.values());
+        };
+
+        const calculateItemStateWithFSRS = (history) => {
+            let card = createEmptyCard();
+            history.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+            history.forEach((review) => {
+                const reviewDate = new Date(review.timestamp);
+                const rating = mapRatingToFSRSRating(review.rating);
+                const scheduledCard = f.next(card, reviewDate, rating);
+                card = scheduledCard.card;
+            });
+            return card;
+        };
+        
+        const rankAndColorItems = (allItems) => {
+            const now = new Date();
+            const itemsWithStatus = allItems.map(item => {
+                const { history } = item;
+                if (history.length === 0) {
+                    return { ...item, color: 'blue', p_forget: 0, next_review: now };
+                }
+                const fsrsCard = calculateItemStateWithFSRS(history);
+                const stability = fsrsCard.stability;
+                const lastReviewTime = fsrsCard.last_review || now;
+                const elapsedDays = (now.getTime() - new Date(lastReviewTime).getTime()) / (1000 * 60 * 60 * 24);
+                const p_recall = Math.pow(0.9, elapsedDays / stability);
+                const p_forget = 1 - p_recall;
+
+                let color;
+                if (p_forget < 0.333) color = 'blue';
+                else if (p_forget < 0.667) color = 'green';
+                else color = 'red';
+                
+                const nextReviewDate = new Date(lastReviewTime);
+                nextReviewDate.setDate(nextReviewDate.getDate() + Math.round(stability));
+
+                return { ...item, color, p_forget, next_review: nextReviewDate };
+            });
+
+            itemsWithStatus.sort((a, b) => a.p_forget - b.p_forget).reverse();
+            return itemsWithStatus;
+        };
+
+
+        // --- Schedule & Learning History ---
+        function renderSchedule() {
+            scheduleContainer.innerHTML = '';
+            const items = groupReviewsByItem(learningHistory);
+            const rankedItems = rankAndColorItems(items);
+
+            if (rankedItems.length === 0) {
+                scheduleContainer.innerHTML = `<p class="text-center text-slate-500 dark:text-slate-400">No cards with learning history yet. Study some cards to build your schedule!</p>`;
+                return;
+            }
+
+            const table = document.createElement('table'); 
+            table.className = 'w-full text-sm text-left table-fixed';
+            table.innerHTML = `<thead class="text-xs text-slate-700 uppercase bg-slate-50 dark:bg-slate-700 dark:text-slate-400"><tr><th scope="col" class="px-4 py-3">Card</th><th scope="col" class="px-4 py-3 text-right">Next Review</th></tr></thead>`;
+            const tbody = document.createElement('tbody');
+            rankedItems.forEach(item => {
+                const tr = document.createElement('tr'); 
+                tr.className = 'border-b dark:border-slate-700';
+                const nextDate = item.next_review.toLocaleDateString();
+                tr.innerHTML = `
+                    <td class="px-4 py-3">
+                        <p class="font-medium truncate cursor-pointer hover:underline schedule-card-link schedule-color-${item.color}" data-deck-id="${item.deckId}" data-card-id="${item.id}" title="Study from this card">${item.cardQuestion}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">in <span class="font-semibold cursor-pointer hover:underline schedule-deck-link" data-deck-id="${item.deckId}" title="Study this deck">${item.deckName}</span></p>
+                    </td>
+                    <td class="px-4 py-3 text-right text-slate-500 dark:text-slate-400">
+                        <p class="font-semibold">${(1-item.p_forget).toFixed(2)}%</p>
+                        <p class="text-xs">${nextDate}</p>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody); 
+            scheduleContainer.appendChild(table);
+        }
+
         function renderLearningHistory(searchTerm = '') {
             learningHistoryContainer.innerHTML = '';
             const normalizedSearchTerm = searchTerm.trim().toLowerCase();
@@ -798,9 +923,9 @@
             learningHistoryContainer.appendChild(table);
         }
 
-        learningHistoryContainer.addEventListener('click', (e) => {
-            const cardLink = e.target.closest('.study-card-link');
-            const deckLink = e.target.closest('.study-deck-link');
+        function handleStudyLinkClicks(e) {
+            const cardLink = e.target.closest('.study-card-link, .schedule-card-link');
+            const deckLink = e.target.closest('.study-deck-link, .schedule-deck-link');
 
             if (cardLink) {
                 const deckId = cardLink.dataset.deckId;
@@ -829,7 +954,10 @@
                     showWarningModal('This deck no longer exists.');
                 }
             }
-        });
+        }
+
+        learningHistoryContainer.addEventListener('click', handleStudyLinkClicks);
+        scheduleContainer.addEventListener('click', handleStudyLinkClicks);
 
         downloadHistoryBtn.addEventListener('click', () => {
             if(learningHistory.length === 0) return;
@@ -882,8 +1010,6 @@
             loadDecks(); 
             loadApiKey(); 
             loadLearningHistory();
-            renderDeckList(); 
-            renderLearningHistory();
             decksContainer.addEventListener('click', handleDeckListActions);
             showAnswerBtn.addEventListener('click', flipCard);
             ratingButtons.forEach(button => button.addEventListener('click', handleRating));
