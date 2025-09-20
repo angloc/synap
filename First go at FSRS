@@ -822,8 +822,8 @@
             history.forEach((review) => {
                 const reviewDate = new Date(review.timestamp);
                 const rating = mapRatingToFSRSRating(review.rating);
-                const scheduledCard = f.next(card, reviewDate, rating);
-                card = scheduledCard.card;
+                const scheduling_cards = f.repeat(card, reviewDate);
+                card = scheduling_cards[rating].card;
             });
             return card;
         };
@@ -833,36 +833,31 @@
             const itemsWithStatus = allItems.map(item => {
                 const { history } = item;
                 if (history.length === 0) {
-                    return { ...item, color: 'red', p_forget: 1, next_review: now };
+                    return { ...item, color: 'red', p_recall: 0, next_review: now };
                 }
                 const fsrsCard = calculateItemStateWithFSRS(history);
-                const stability = fsrsCard.stability;
                 if (!fsrsCard.last_review) {
-                    return { ...item, color: 'red', p_forget: 1, next_review: now };
+                    return { ...item, color: 'red', p_recall: 0, next_review: now };
                 }
-                const lastReviewTime = new Date(fsrsCard.last_review);
-                const elapsedDays = (now.getTime() - lastReviewTime.getTime()) / (1000 * 60 * 60 * 24);
-                
-                const p_recall = Math.exp(-elapsedDays / stability);
-                const p_forget = 1 - p_recall;
+
+                const p_recall = f.get_retrievability(fsrsCard, now);
 
                 let color;
-                if (p_recall < 0.8) { 
+                if (p_recall < 0.80) { // Overdue
                     color = 'red';
-                } else if (p_recall < 0.9) {
+                } else if (p_recall < 0.95) { // Optimal
                     color = 'green';
-                } else {
+                } else { // Premature
                     color = 'blue';
                 }
                 
-                const nextReviewDate = new Date(lastReviewTime);
-                const nextInterval = f.next_interval(stability);
-                nextReviewDate.setDate(nextReviewDate.getDate() + nextInterval);
+                const scheduling_cards = f.repeat(fsrsCard, now);
+                const nextReviewDate = scheduling_cards[Rating.Good].due;
 
-                return { ...item, color, p_forget, next_review: nextReviewDate };
+                return { ...item, color, p_recall, next_review: nextReviewDate };
             });
 
-            itemsWithStatus.sort((a, b) => b.p_forget - a.p_forget);
+            itemsWithStatus.sort((a, b) => a.p_recall - b.p_recall);
             return itemsWithStatus;
         };
 
@@ -892,7 +887,7 @@
                         <p class="text-xs text-slate-500 dark:text-slate-400">in <span class="font-semibold cursor-pointer hover:underline schedule-deck-link" data-deck-id="${item.deckId}" title="Study this deck">${item.deckName}</span></p>
                     </td>
                     <td class="px-4 py-3 text-right text-slate-500 dark:text-slate-400">
-                        <p class="font-semibold">${Math.round((1 - item.p_forget) * 100)}%</p>
+                        <p class="font-semibold">${Math.round(item.p_recall * 100)}%</p>
                         <p class="text-xs">${nextDate}</p>
                     </td>
                 `;
