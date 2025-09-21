@@ -827,50 +827,119 @@
             });
             return card;
         };
-        
+
         const rankAndColorItems = (allItems) => {
             const now = new Date();
+            const TARGET_RECALL = 0.9; // 90% recall threshold
+            const DEFAULT_WINDOW_PROPORTION = 0.02; // 2% of interval as fallback
+            
             const itemsWithStatus = allItems.map(item => {
                 const { history } = item;
+                
+                // New/unpresented cards
                 if (history.length === 0) {
-                    return { ...item, color: 'gray', p_recall: null, next_review: now };
+                    return { 
+                        ...item, 
+                        color: 'gray', 
+                        p_recall: null, 
+                        next_review: now,
+                        relative_lateness: 0,
+                        sort_priority: 2
+                    };
                 }
+                
+                // Cards with history - calculate FSRS state
                 const fsrsCard = calculateItemStateWithFSRS(history);
-
-                if (fsrsCard.state === State.Review && fsrsCard.stability > 0 && history.length > 1) {
-                    const p_recall = f.get_retrievability(fsrsCard, now) || 0;
-                    let color;
-                    if (p_recall < 0.80) { // Overdue
-                        color = 'red';
-                    } else if (p_recall < 0.95) { // Optimal
-                        color = 'green';
-                    } else { // Premature
-                        color = 'blue';
+                const nextReviewDate = fsrsCard.due;
+                const lastReview = new Date(history[history.length - 1].timestamp);
+                const intervalMs = nextReviewDate.getTime() - lastReview.getTime();
+                
+                // Calculate recall probability if possible
+                let p_recall = null;
+                if (fsrsCard.state === State.Review) {
+                    const retrievability = f.get_retrievability(fsrsCard, now);
+                    if (typeof retrievability === 'number' && 
+                        !isNaN(retrievability) && 
+                        retrievability >= 0 && 
+                        retrievability <= 1) {
+                        p_recall = retrievability;
                     }
+                }
+                
+                // Calculate window boundaries
+                let windowStart, windowEnd;
+                
+                // Try analytical calculation if we have stability and difficulty
+                if (fsrsCard.stability && fsrsCard.difficulty && fsrsCard.state === State.Review) {
+                    // Time (in days from last review) when recall drops to 90%
+                    // R(t) = (1 + t/S)^(-1/D) = 0.9
+                    // Solving: t = S * (0.9^(-D) - 1)
+                    const t_90_percent = fsrsCard.stability * (Math.pow(TARGET_RECALL, -fsrsCard.difficulty) - 1);
+                    windowStart = new Date(lastReview.getTime() + t_90_percent * 24 * 60 * 60 * 1000);
                     
-                    const scheduling_cards = f.repeat(fsrsCard, now);
-                    const nextReviewDate = scheduling_cards[Rating.Good].card.due;
-
-                    return { ...item, color, p_recall, next_review: nextReviewDate };
+                    // For window end, find when recall drops to 90% of the due date recall
+                    // This is the same interval after the due date as before
+                    const window_width = nextReviewDate.getTime() - windowStart.getTime();
+                    windowEnd = new Date(nextReviewDate.getTime() + window_width);
                 } else {
-                    // Card is in New, Learning, or Relearning state, or it's a new "Review" card.
-                    const scheduling_cards = f.repeat(fsrsCard, now);
-                    const nextReviewDate = scheduling_cards[Rating.Good].card.due;
-                    return { ...item, color: 'gray', p_recall: null, next_review: nextReviewDate };
+                    // Fallback: use proportion of interval
+                    const windowSizeMs = intervalMs * DEFAULT_WINDOW_PROPORTION;
+                    windowStart = new Date(nextReviewDate.getTime() - windowSizeMs);
+                    windowEnd = new Date(nextReviewDate.getTime() + windowSizeMs);
                 }
+                
+                // Calculate relative lateness for cards in window or overdue
+                let relative_lateness = 0;
+                if (now >= windowStart) {
+                    const window_duration = windowEnd.getTime() - windowStart.getTime();
+                    const time_since_window_start = now.getTime() - windowStart.getTime();
+                    relative_lateness = window_duration > 0 ? time_since_window_start / window_duration : 1.0;
+                }
+                
+                // Determine color based on timing
+                let color, sort_priority;
+                if (now > windowEnd) {
+                    // Past window end = overdue
+                    color = 'red';
+                    sort_priority = 1;
+                } else if (now >= windowStart) {
+                    // Within optimal window
+                    color = 'green';
+                    sort_priority = 3;
+                } else {
+                    // Before window = premature
+                    color = 'blue';
+                    sort_priority = 4;
+                }
+                
+                return { 
+                    ...item, 
+                    color, 
+                    p_recall, 
+                    next_review: nextReviewDate,
+                    relative_lateness,
+                    sort_priority
+                };
             });
-
+            
+            // Sort by color priority, then by relative lateness or due date
             itemsWithStatus.sort((a, b) => {
-                const aRecall = a.p_recall ?? -1; // Nulls (learning cards) are most urgent
-                const bRecall = b.p_recall ?? -1;
-                if (aRecall !== bRecall) {
-                    return aRecall - bRecall;
+                // First by color priority (red > gray > green > blue)
+                if (a.sort_priority !== b.sort_priority) {
+                    return a.sort_priority - b.sort_priority;
                 }
-                return a.next_review - b.next_review;
+                
+                // For red and green: sort by relative lateness (highest first)
+                if (a.sort_priority === 1 || a.sort_priority === 3) {
+                    return b.relative_lateness - a.relative_lateness;
+                }
+                
+                // For gray and blue: sort by scheduled date (earliest first)
+                return a.next_review.getTime() - b.next_review.getTime();
             });
+            
             return itemsWithStatus;
         };
-
 
         // --- Schedule & Learning History ---
         function renderSchedule() {
@@ -890,7 +959,7 @@
             rankedItems.forEach(item => {
                 const tr = document.createElement('tr'); 
                 tr.className = 'border-b dark:border-slate-700';
-                const nextDate = item.next_review ? item.next_review.toLocaleDateString() : 'N/A';
+                const nextDate = item.next_review ? item.next_review.toLocaleString() : 'N/A';
                 const recallText = item.p_recall !== null ? `${Math.round(item.p_recall * 100)}%` : '--';
                 const recallTextColor = item.p_recall !== null ? 'text-slate-500 dark:text-slate-400' : 'text-slate-400 dark:text-slate-500';
 
